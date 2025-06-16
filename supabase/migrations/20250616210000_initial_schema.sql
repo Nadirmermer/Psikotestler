@@ -1,4 +1,5 @@
 
+
 -- TABLO 1: profiles (Kullanıcı Profilleri)
 -- Supabase'in 'auth.users' tablosunu genişletir. Her ruh sağlığı uzmanının
 -- adı, unvanı gibi ek bilgilerini burada saklarız.
@@ -39,11 +40,13 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO public.profiles (id, full_name)
-    VALUES (new.id, new.raw_user_meta_data->>'full_name');
+    VALUES (new.id, COALESCE(new.raw_user_meta_data->>'full_name', new.email));
     RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Trigger'ı sil ve yeniden oluştur
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
@@ -54,23 +57,31 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session_notes ENABLE ROW LEVEL SECURITY;
 
--- Profiles için daha detaylı politikalar
-DROP POLICY IF EXISTS "Users can manage their own profile" ON profiles;
-CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can delete their own profile" ON profiles FOR DELETE USING (auth.uid() = id);
+-- Mevcut politikaları sil
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can delete their own profile" ON profiles;
 
--- Clients için daha detaylı politikalar
-DROP POLICY IF EXISTS "Users can manage their own clients" ON clients;
-CREATE POLICY "Users can view their own clients" ON clients FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own clients" ON clients FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own clients" ON clients FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own clients" ON clients FOR DELETE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view their own clients" ON clients;
+DROP POLICY IF EXISTS "Users can insert their own clients" ON clients;
+DROP POLICY IF EXISTS "Users can update their own clients" ON clients;
+DROP POLICY IF EXISTS "Users can delete their own clients" ON clients;
 
--- Session notes için daha detaylı politikalar
-DROP POLICY IF EXISTS "Users can manage their own session notes" ON session_notes;
-CREATE POLICY "Users can view their own session notes" ON session_notes FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own session notes" ON session_notes FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own session notes" ON session_notes FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own session notes" ON session_notes FOR DELETE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view their own session notes" ON session_notes;
+DROP POLICY IF EXISTS "Users can insert their own session notes" ON session_notes;
+DROP POLICY IF EXISTS "Users can update their own session notes" ON session_notes;
+DROP POLICY IF EXISTS "Users can delete their own session notes" ON session_notes;
+
+-- Profiles tablosu için basitleştirilmiş politikalar
+CREATE POLICY "Enable all access for authenticated users to own profile" ON profiles 
+    FOR ALL USING (auth.uid() = id);
+
+-- Clients tablosu için basitleştirilmiş politikalar  
+CREATE POLICY "Enable all access for authenticated users to own clients" ON clients 
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Session notes tablosu için basitleştirilmiş politikalar
+CREATE POLICY "Enable all access for authenticated users to own session notes" ON session_notes 
+    FOR ALL USING (auth.uid() = user_id);
+
