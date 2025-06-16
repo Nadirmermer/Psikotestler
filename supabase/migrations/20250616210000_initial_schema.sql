@@ -84,3 +84,45 @@ GRANT INSERT ON TABLE public.profiles TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.profiles TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.clients TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.session_notes TO authenticated;
+
+-- TABLO 4: scid_sessions (SCID Seansları)
+-- Hangi danışana, hangi uzman tarafından, hangi SCID testinin ne zaman uygulandığını kaydeder.
+-- Seans geneli notlar da burada tutulabilir.
+CREATE TABLE scid_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID REFERENCES clients(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    test_type VARCHAR(50) NOT NULL, -- 'scid-5-cv', 'scid-5-pd' vb.
+    status VARCHAR(50) DEFAULT 'in-progress', -- 'in-progress', 'completed'
+    session_wide_note TEXT, -- Seans boyunca görülecek genel not alanı
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- TABLO 5: scid_answers (SCID Cevapları)
+-- Her bir SCID seansındaki her bir soruya verilen cevabı ve o soruya özel notu saklar.
+CREATE TABLE scid_answers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID REFERENCES scid_sessions(id) ON DELETE CASCADE NOT NULL,
+    question_code VARCHAR(20) NOT NULL, -- Örn: 'A5', 'G14', 'F22'
+    answer VARCHAR(255), -- '+', '-', 'EVET', 'HAYIR' veya sayısal değer
+    question_specific_note TEXT, -- Soru özelindeki not alanı
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- YENİ TABLOLAR İÇİN GÜVENLİK (RLS) POLİTİKALARI
+ALTER TABLE public.scid_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scid_answers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own scid_sessions" ON public.scid_sessions
+    FOR ALL USING (auth.uid() = user_id);
+
+-- scid_answers tablosu için politika, kullanıcının ilgili seansın sahibi olup olmadığını kontrol etmelidir.
+CREATE POLICY "Users can manage answers for their own sessions" ON public.scid_answers
+    FOR ALL USING (
+        (SELECT user_id FROM scid_sessions WHERE id = session_id) = auth.uid()
+    );
+
+-- YENİ TABLOLAR İÇİN GENEL İZİNLER
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.scid_sessions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.scid_answers TO authenticated;

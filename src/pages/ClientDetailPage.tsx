@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Save, X, User, FileText } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Save, X, User, FileText, BrainCircuit } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,6 +36,7 @@ type SessionNote = {
 
 export const ClientDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [notes, setNotes] = useState<SessionNote[]>([]);
@@ -128,6 +129,28 @@ export const ClientDetailPage: React.FC = () => {
     setIsSaving(false);
   };
 
+  const startNewScidCvSession = async () => {
+    if (!user || !id) return;
+    
+    const { data, error } = await supabase
+      .from('scid_sessions')
+      .insert({
+        client_id: id,
+        user_id: user.id,
+        test_type: 'scid-5-cv',
+        status: 'in-progress'
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      toast.error('Yeni SCID-5-CV seansı başlatılırken bir hata oluştu.');
+      console.error(error);
+    } else {
+      navigate(`/clients/${id}/scid/cv/${data.id}`);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
   }
@@ -149,8 +172,9 @@ export const ClientDetailPage: React.FC = () => {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{client.full_name}</h1>
       
       <Tabs defaultValue="notes" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="notes"><FileText className="h-4 w-4 mr-2"/>Seans Notları</TabsTrigger>
+          <TabsTrigger value="scid"><BrainCircuit className="h-4 w-4 mr-2"/>SCID Testleri</TabsTrigger>
           <TabsTrigger value="info"><User className="h-4 w-4 mr-2"/>Danışan Bilgileri</TabsTrigger>
         </TabsList>
 
@@ -186,6 +210,33 @@ export const ClientDetailPage: React.FC = () => {
                 )}
               </div>
             )) : <p className="text-gray-500 text-center py-8">Bu danışan için henüz not yok.</p>}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="scid" className="mt-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Yapılandırılmış Klinik Görüşme (SCID)</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Buradan yeni bir SCID-5 testi başlatabilir veya geçmiş test sonuçlarını görüntüleyebilirsiniz.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+               <button 
+                 onClick={startNewScidCvSession}
+                 className="flex-1 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+               >
+                 <Plus className="h-5 w-5"/> Yeni SCID-5-CV Başlat
+               </button>
+               <button disabled className="flex-1 px-4 py-3 bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
+                 SCID-5-PD (Yakında)
+               </button>
+               <button disabled className="flex-1 px-4 py-3 bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2">
+                 SCID-5-SPQ (Yakında)
+               </button>
+            </div>
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Geçmiş Testler</h3>
+              <p className="text-gray-500">Henüz tamamlanmış bir SCID testi bulunmamaktadır.</p>
+            </div>
           </div>
         </TabsContent>
 

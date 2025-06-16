@@ -1,3 +1,4 @@
+// src/App.tsx
 
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -9,6 +10,7 @@ import { HomePage } from "./pages/HomePage";
 import { ClientsPage } from "./pages/ClientsPage";
 import { ClientDetailPage } from "./pages/ClientDetailPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { Scid5CvPage } from "./pages/Scid5CvPage"; // Yeni sayfayı import edin
 
 const App = () => (
   <ThemeProvider>
@@ -16,6 +18,17 @@ const App = () => (
       <Toaster position="top-right" />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        
+        {/* Test sayfasının AppLayout dışında, tam ekran olması için ayrı bir rotaya koyuyoruz */}
+        <Route 
+          path="/clients/:id/scid/cv/:sessionId"
+          element={
+            <ProtectedRoute>
+              <Scid5CvPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/*"
           element={
