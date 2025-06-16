@@ -10,7 +10,7 @@ import { HomePage } from "./pages/HomePage";
 import { ClientsPage } from "./pages/ClientsPage";
 import { ClientDetailPage } from "./pages/ClientDetailPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { Scid5CvPage } from "./pages/Scid5CvPage"; // Yeni sayfayı import edin
+import { Scid5CvPage } from "./pages/Scid5CvPage"; 
 
 const App = () => (
   <ThemeProvider>

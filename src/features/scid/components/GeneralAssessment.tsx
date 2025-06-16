@@ -1,14 +1,14 @@
 // src/features/scid/components/GeneralAssessment.tsx
 
 import React, { useState } from 'react';
-import { genelDegerlendirme_data, AssessmentQuestion } from '../data/genel-degerlendirme.data';
+import { genelDegerlendirme_data } from '../data/genel-degerlendirme.data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import ReactMarkdown from 'react-markdown';
 
 interface GeneralAssessmentProps {
-  onProceed: (notes: { [key: string]: string }) => void;
+  onProceed: () => void;
 }
 
 export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({ onProceed }) => {
@@ -68,7 +68,7 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({ onProceed 
           </div>
 
           <div className="mt-12 text-center">
-            <Button size="lg" onClick={() => onProceed(notes)}>
+            <Button size="lg" onClick={() => onProceed()}>
               Modül Seçimine Geç
             </Button>
           </div>

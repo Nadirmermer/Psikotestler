@@ -195,15 +195,39 @@ export const Scid5CvPage: React.FC = () => {
 
     const handleStartQuestioning = useCallback((selectedModules: string[]) => {
       console.log('Seçilen modüller:', selectedModules);
+      console.log('Toplam soru sayısı (scid5cv_data):', scid5cv_data.length);
       
       // Seçilen modüllere göre soruları filtrele
-      const filteredQuestions = scid5cv_data.filter(q => 
-        selectedModules.includes(q.module || '') || q.module === 'GENEL'
-      );
+      // Genel değerlendirme sorularını dahil etme, sadece seçilen modüllerdeki soruları al
+      const filteredQuestions = scid5cv_data.filter(q => {
+        const questionModule = q.module;
+        // Genel değerlendirme sorularını hariç tut
+        if (questionModule === 'Genel') {
+          return false;
+        }
+        const isIncluded = selectedModules.includes(questionModule || '');
+        
+        if (isIncluded) {
+          console.log(`Soru dahil edildi: ${q.id} (Modül: ${questionModule})`);
+        }
+        
+        return isIncluded;
+      });
+      
+      console.log('Filtrelenmiş soru sayısı:', filteredQuestions.length);
+      console.log('İlk 5 soru:', filteredQuestions.slice(0, 5).map(q => ({ id: q.id, module: q.module, text: q.text?.substring(0, 50) })));
+      
+      if (filteredQuestions.length === 0) {
+        console.error('Hiç soru bulunamadı! Seçilen modüller:', selectedModules);
+        toast.error('Seçilen modüller için soru bulunamadı!');
+        return;
+      }
       
       setQuestionsToAsk(filteredQuestions);
       setCurrentQuestionIndex(0);
       setPhase('questioning');
+      
+      console.log('Questioning phase\'e geçildi. İlk soru:', filteredQuestions[0]);
     }, []);
 
     const handleNext = useCallback((calculatedResult?: string) => {
