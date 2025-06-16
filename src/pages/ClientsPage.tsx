@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react'
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-import toast from 'react-hot-toast'
+import React, { useEffect, useState, useMemo } from 'react';
+import { Plus, Search, Edit, Trash2, Eye, Users as UsersIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import toast from 'react-hot-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,40 +13,45 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog"; // AlertDialog bileşenlerini import ediyoruz
 
 interface Client {
-  id: string
-  full_name: string
-  email: string | null
-  phone: string | null
-  created_at: string
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
 }
 
 export const ClientsPage: React.FC = () => {
-  const { user } = useAuth()
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [editingClient, setEditingClient] = useState<Client | null>(null)
-  const [deletingClient, setDeletingClient] = useState<Client | null>(null)
+  const { user } = useAuth();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [deletingClient, setDeletingClient] = useState<Client | null>(null); // Silinecek danışanı tutmak için state
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
     phone: '',
-  })
+  });
 
+  // Arama işlemini optimize etmek için useMemo kullanıyoruz
   const filteredClients = useMemo(() => {
-    if (!searchTerm) return clients;
+    if (!searchTerm) {
+      return clients;
+    }
     return clients.filter(client =>
       client.full_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [clients, searchTerm]);
 
   useEffect(() => {
-    if (user) fetchClients();
-  }, [user])
+    if (user) {
+      fetchClients();
+    }
+  }, [user]);
 
   const fetchClients = async () => {
     if (!user) return;
@@ -56,10 +61,14 @@ export const ClientsPage: React.FC = () => {
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
-    if (error) toast.error('Danışanlar yüklenirken hata oluştu');
-    else if (data) setClients(data);
+
+    if (error) {
+      toast.error('Danışanlar yüklenirken hata oluştu');
+    } else if (data) {
+      setClients(data);
+    }
     setLoading(false);
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,13 +82,13 @@ export const ClientsPage: React.FC = () => {
       : await supabase.from('clients').insert([{ ...formData, user_id: user.id }]);
 
     if (error) {
-      toast.error('İşlem gerçekleştirilirken hata oluştu');
+      toast.error('İşlem gerçekleştirilirken hata oluştu: ' + error.message);
     } else {
       toast.success(editingClient ? 'Danışan güncellendi' : 'Danışan eklendi');
       fetchClients();
       closeModal();
     }
-  }
+  };
 
   const confirmDelete = async () => {
     if (!deletingClient) return;
@@ -96,21 +105,21 @@ export const ClientsPage: React.FC = () => {
       fetchClients();
     }
     setDeletingClient(null); // Onay penceresini kapat
-  }
+  };
 
   const openModal = (client?: Client) => {
     if (client) {
-      setEditingClient(client)
-      setFormData({ full_name: client.full_name, email: client.email || '', phone: client.phone || '' })
+      setEditingClient(client);
+      setFormData({ full_name: client.full_name, email: client.email || '', phone: client.phone || '' });
     }
-    setShowModal(true)
-  }
+    setShowModal(true);
+  };
 
   const closeModal = () => {
-    setShowModal(false)
-    setEditingClient(null)
-    setFormData({ full_name: '', email: '', phone: '' })
-  }
+    setShowModal(false);
+    setEditingClient(null);
+    setFormData({ full_name: '', email: '', phone: '' });
+  };
 
   return (
     <div className="space-y-6">
@@ -148,7 +157,7 @@ export const ClientsPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredClients.map((client) => (
             <div key={client.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col">
               <div className="flex-1">
@@ -159,11 +168,11 @@ export const ClientsPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => openModal(client)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Düzenle"><Edit className="h-4 w-4" /></button>
-                    <button onClick={() => setDeletingClient(client)} className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Sil"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => openModal(client)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Düzenle"><Edit className="h-4 w-4" /></button>
+                    <button onClick={() => setDeletingClient(client)} className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="Sil"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{client.full_name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 truncate">{client.full_name}</h3>
                 {client.email && <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 truncate">{client.email}</p>}
                 {client.phone && <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{client.phone}</p>}
               </div>
@@ -177,7 +186,7 @@ export const ClientsPage: React.FC = () => {
 
       {!loading && clients.length === 0 && (
          <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-           <Users className="mx-auto h-12 w-12 opacity-50 mb-4" />
+           <UsersIcon className="mx-auto h-12 w-12 opacity-50 mb-4" />
            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Henüz hiç danışan yok</h3>
            <p className="mt-1">İlk danışanınızı ekleyerek başlayın.</p>
          </div>
@@ -185,7 +194,7 @@ export const ClientsPage: React.FC = () => {
 
       {/* Add/Edit Client Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 transition-opacity">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 transition-opacity animate-in fade-in-0" onClick={closeModal}>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold mb-4">{editingClient ? 'Danışanı Düzenle' : 'Yeni Danışan Ekle'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -195,11 +204,11 @@ export const ClientsPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">E-posta</label>
-                <input type="email" className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                <input type="email" className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" value={formData.email || ''} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Telefon</label>
-                <input type="tel" className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                <input type="tel" className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" value={formData.phone || ''} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
               </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">İptal</button>
@@ -220,12 +229,11 @@ export const ClientsPage: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeletingClient(null)}>İptal</AlertDialogCancel>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Evet, Sil</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   )
 }

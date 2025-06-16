@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
-import { MobileNav } from './MobileNav'; // Mobil navigasyonu import et
+import { MobileNav } from './MobileNav'; // Yeni mobil navigasyon bileşenini import ediyoruz
 
 export const AppLayout: React.FC = () => {
   const { user } = useAuth();
@@ -13,6 +13,7 @@ export const AppLayout: React.FC = () => {
   const location = useLocation();
   const [profile, setProfile] = useState<{ full_name: string | null }>({ full_name: null });
 
+  // Kullanıcı bilgileri değiştiğinde profil bilgilerini çek
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
@@ -32,6 +33,7 @@ export const AppLayout: React.FC = () => {
     }
   }, [user]);
 
+  // Çıkış yapma fonksiyonu
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -49,7 +51,7 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      {/* Sidebar - Sadece masaüstünde görünür */}
+      {/* Sidebar - Sadece orta ve büyük ekranlarda (md ve üzeri) görünür */}
       <aside className="w-64 bg-white dark:bg-gray-800 shadow-lg hidden md:flex md:flex-col">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">PsikoTest</h1>
@@ -57,7 +59,7 @@ export const AppLayout: React.FC = () => {
         
         <nav className="mt-6 flex-1">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
@@ -88,14 +90,14 @@ export const AppLayout: React.FC = () => {
             {theme === 'light' ? 'Karanlık Tema' : 'Aydınlık Tema'}
           </button>
           <div className="flex items-center">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {profile.full_name || user?.email}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="ml-3 p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              className="ml-3 p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors shrink-0"
               title="Çıkış Yap"
             >
               <LogOut className="h-5 w-5" />
@@ -104,14 +106,15 @@ export const AppLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8"> {/* Mobil menü için altta boşluk bırak */}
+      {/* Ana İçerik Alanı */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobil ve tabletlerde içeriğin alttaki menünün üstünde kalması için padding ekliyoruz */}
+        <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>
 
-      {/* Mobile Navigation - Sadece mobilde görünür */}
+      {/* Mobil Navigasyon - Sadece küçük ekranlarda görünür */}
       <MobileNav />
     </div>
   );

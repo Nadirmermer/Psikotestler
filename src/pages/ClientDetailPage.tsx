@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Save, X, User, FileText } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
-import toast from 'react-hot-toast'
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Save, X, User, FileText } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import toast from 'react-hot-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,85 +14,87 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from '@/lib/utils';
 
 // Tipleri ayrı tanımlamak daha temiz bir kod sağlar
 type Client = {
-  id: string
-  full_name: string
-  email: string | null
-  phone: string | null
-}
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+};
 
 type SessionNote = {
-  id: string
-  note: string
-  session_date: string
-  created_at: string
-  updated_at: string
-}
+  id: string;
+  note: string;
+  session_date: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export const ClientDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
-  const { user } = useAuth()
-  const [client, setClient] = useState<Client | null>(null)
-  const [notes, setNotes] = useState<SessionNote[]>([])
-  const [loading, setLoading] = useState(true)
-  const [newNote, setNewNote] = useState('')
-  const [editingNote, setEditingNote] = useState<SessionNote | null>(null)
-  const [editingNoteText, setEditingNoteText] = useState('')
-  const [deletingNote, setDeletingNote] = useState<SessionNote | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
+  const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const [client, setClient] = useState<Client | null>(null);
+  const [notes, setNotes] = useState<SessionNote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newNote, setNewNote] = useState('');
+  const [editingNote, setEditingNote] = useState<SessionNote | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState('');
+  const [deletingNote, setDeletingNote] = useState<SessionNote | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [clientForm, setClientForm] = useState<Client | null>(null);
+
 
   const fetchClientAndNotes = async () => {
     if (!user || !id) return;
     setLoading(true);
 
     const clientPromise = supabase.from('clients').select('*').eq('id', id).single();
-    const notesPromise = supabase.from('session_notes').select('*').eq('client_id', id).order('session_date', { ascending: false });
+    const notesPromise = supabase.from('session_notes').select('*').eq('client_id', id).order('session_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
     
     const [clientResult, notesResult] = await Promise.all([clientPromise, notesPromise]);
 
     if (clientResult.error) {
       toast.error('Danışan bilgileri yüklenirken hata oluştu');
-      console.error('Error fetching client:', clientResult.error);
       setClient(null);
     } else {
       setClient(clientResult.data);
+      setClientForm(clientResult.data); // Form için ayrı state
     }
     
     if (notesResult.error) {
       toast.error('Seans notları yüklenirken hata oluştu');
-      console.error('Error fetching notes:', notesResult.error);
     } else {
       setNotes(notesResult.data);
     }
 
     setLoading(false);
-  }
+  };
 
   useEffect(() => {
     fetchClientAndNotes();
   }, [user, id]);
   
   const handleSaveNote = async () => {
-    if (!user || !id || !newNote.trim()) return
+    if (!user || !id || !newNote.trim()) return;
     setIsSaving(true);
-    const { error } = await supabase.from('session_notes').insert([{ client_id: id, user_id: user.id, note: newNote.trim(), session_date: new Date().toISOString().split('T')[0] }])
+    const { error } = await supabase.from('session_notes').insert([{ client_id: id, user_id: user.id, note: newNote.trim(), session_date: new Date().toISOString().split('T')[0] }]);
     if (error) toast.error('Not kaydedilirken hata oluştu');
     else {
       toast.success('Not kaydedildi');
       setNewNote('');
-      fetchClientAndNotes(); // Listeyi yenile
+      fetchClientAndNotes();
     }
     setIsSaving(false);
-  }
+  };
 
   const handleUpdateNote = async () => {
-    if (!editingNote || !editingNoteText.trim()) return
+    if (!editingNote || !editingNoteText.trim()) return;
     setIsSaving(true);
-    const { error } = await supabase.from('session_notes').update({ note: editingNoteText.trim(), updated_at: new Date().toISOString() }).eq('id', editingNote.id)
+    const { error } = await supabase.from('session_notes').update({ note: editingNoteText.trim(), updated_at: new Date().toISOString() }).eq('id', editingNote.id);
     if (error) toast.error('Not güncellenirken hata oluştu');
     else {
       toast.success('Not güncellendi');
@@ -100,9 +102,9 @@ export const ClientDetailPage: React.FC = () => {
       fetchClientAndNotes();
     }
     setIsSaving(false);
-  }
+  };
 
-  const handleDeleteNote = async () => {
+  const confirmDeleteNote = async () => {
     if (!deletingNote) return;
     const { error } = await supabase.from('session_notes').delete().eq('id', deletingNote.id);
     if (error) toast.error('Not silinirken hata oluştu');
@@ -111,20 +113,23 @@ export const ClientDetailPage: React.FC = () => {
       fetchClientAndNotes();
     }
     setDeletingNote(null);
-  }
+  };
   
   const handleClientInfoUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!client) return;
+    if (!clientForm) return;
     setIsSaving(true);
-    const { error } = await supabase.from('clients').update({ full_name: client.full_name, email: client.email, phone: client.phone }).eq('id', client.id);
+    const { error } = await supabase.from('clients').update({ full_name: clientForm.full_name, email: clientForm.email, phone: clientForm.phone }).eq('id', clientForm.id);
     if (error) toast.error("Danışan bilgileri güncellenemedi.");
-    else toast.success("Danışan bilgileri güncellendi.");
+    else {
+       toast.success("Danışan bilgileri güncellendi.");
+       fetchClientAndNotes(); // Ana başlığı vs. de güncellemek için
+    }
     setIsSaving(false);
-  }
+  };
 
   if (loading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+    return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
   }
 
   if (!client) {
@@ -133,7 +138,7 @@ export const ClientDetailPage: React.FC = () => {
         <p className="text-gray-500">Danışan bulunamadı veya bu danışana erişim izniniz yok.</p>
         <Link to="/clients" className="mt-4 inline-flex items-center text-blue-600 hover:underline"><ArrowLeft className="h-4 w-4 mr-2" /> Danışanlara Dön</Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -150,7 +155,7 @@ export const ClientDetailPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="notes" className="mt-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
              <h2 className="text-xl font-semibold mb-4 flex items-center"><Plus className="h-5 w-5 mr-2" /> Yeni Seans Notu</h2>
              <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} placeholder="Seans notunuzu buraya yazın... (Markdown desteklenir)" className="w-full h-32 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 resize-none"/>
              <div className="flex justify-end mt-2"><button onClick={handleSaveNote} disabled={isSaving || !newNote.trim()} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"><Save className="h-4 w-4"/> {isSaving ? 'Kaydediliyor...' : 'Notu Kaydet'}</button></div>
@@ -158,7 +163,7 @@ export const ClientDetailPage: React.FC = () => {
           <h2 className="text-xl font-semibold mb-4 flex items-center"><Calendar className="h-5 w-5 mr-2" /> Geçmiş Notlar ({notes.length})</h2>
           <div className="space-y-4">
             {notes.length > 0 ? notes.map(note => (
-              <div key={note.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <div key={note.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 {editingNote?.id === note.id ? (
                    <div>
                      <textarea value={editingNoteText} onChange={(e) => setEditingNoteText(e.target.value)} className="w-full h-40 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 resize-none" />
@@ -170,13 +175,13 @@ export const ClientDetailPage: React.FC = () => {
                 ) : (
                   <div>
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(note.session_date).toLocaleDateString('tr-TR')}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{new Date(note.session_date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                       <div className="flex gap-2">
-                        <button onClick={() => handleEditNote(note)} className="p-1 text-gray-400 hover:text-blue-600"><Edit className="h-4 w-4" /></button>
+                        <button onClick={() => { setEditingNote(note); setEditingNoteText(note.note); }} className="p-1 text-gray-400 hover:text-blue-600"><Edit className="h-4 w-4" /></button>
                         <button onClick={() => setDeletingNote(note)} className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
-                    <div className="prose dark:prose-invert max-w-none"><ReactMarkdown>{note.note}</ReactMarkdown></div>
+                    <article className="prose dark:prose-invert max-w-none"><ReactMarkdown>{note.note}</ReactMarkdown></article>
                   </div>
                 )}
               </div>
@@ -185,29 +190,31 @@ export const ClientDetailPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="info" className="mt-6">
-           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-            <form onSubmit={handleClientInfoUpdate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Ad Soyad</label>
-                <input value={client.full_name} onChange={e => setClient({...client, full_name: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"/>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">E-posta</label>
-                <input type="email" value={client.email || ''} onChange={e => setClient({...client, email: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"/>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Telefon</label>
-                <input type="tel" value={client.phone || ''} onChange={e => setClient({...client, phone: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"/>
-              </div>
-              <div className="flex justify-end">
-                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"><Save className="h-4 w-4"/> {isSaving ? 'Kaydediliyor...' : 'Bilgileri Kaydet'}</button>
-              </div>
-            </form>
+           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+             <h2 className="text-xl font-semibold mb-4">Danışan Bilgilerini Düzenle</h2>
+             {clientForm && (
+              <form onSubmit={handleClientInfoUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ad Soyad</label>
+                  <input value={clientForm.full_name} onChange={e => setClientForm({...clientForm, full_name: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"/>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">E-posta</label>
+                  <input type="email" value={clientForm.email || ''} onChange={e => setClientForm({...clientForm, email: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"/>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Telefon</label>
+                  <input type="tel" value={clientForm.phone || ''} onChange={e => setClientForm({...clientForm, phone: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"/>
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" disabled={isSaving} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"><Save className="h-4 w-4"/> {isSaving ? 'Kaydediliyor...' : 'Bilgileri Kaydet'}</button>
+                </div>
+              </form>
+             )}
            </div>
         </TabsContent>
       </Tabs>
 
-      {/* Delete Note Confirmation Dialog */}
        <AlertDialog open={deletingNote !== null} onOpenChange={() => setDeletingNote(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -216,7 +223,7 @@ export const ClientDetailPage: React.FC = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteNote} className="bg-red-600 hover:bg-red-700">Evet, Sil</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDeleteNote} className="bg-red-600 hover:bg-red-700">Evet, Sil</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
