@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Search, Edit, Trash2 } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
@@ -137,6 +138,7 @@ export const ClientsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Danışanlar</h1>
         <button
@@ -176,23 +178,34 @@ export const ClientsPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex gap-2">
+                  <Link
+                    to={`/clients/${client.id}`}
+                    className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                    title="Detayları Görüntüle"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Link>
                   <button
                     onClick={() => openModal(client)}
                     className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="Düzenle"
                   >
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(client)}
                     className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    title="Sil"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {client.full_name}
-              </h3>
+              <Link to={`/clients/${client.id}`} className="block">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  {client.full_name}
+                </h3>
+              </Link>
               {client.email && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{client.email}</p>
               )}
@@ -207,6 +220,7 @@ export const ClientsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Empty state */}
       {filteredClients.length === 0 && !loading && (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
