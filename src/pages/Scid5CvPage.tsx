@@ -50,9 +50,25 @@ export const Scid5CvPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debouncedSessionNote] = useDebounce(sessionNote, 1000);
-    // ...
 
-    // İlk yükleme - client ve session bilgilerini al
+  // Navigation handlers
+  const handleBackToClientDetail = useCallback(() => {
+    navigate(`/clients/${clientId}?tab=tests`);
+  }, [navigate, clientId]);
+
+  const handleBackToGeneralAssessment = useCallback(() => {
+    setPhase('general_assessment');
+  }, []);
+
+  const handleBackToModuleSelection = useCallback(() => {
+    setPhase('module_selection');
+  }, []);
+
+  const handleExitTest = useCallback(() => {
+    navigate(`/clients/${clientId}?tab=tests`);
+  }, [navigate, clientId]);
+
+  // İlk yükleme - client ve session bilgilerini al
     useEffect(() => {
       const initializePage = async () => {
         try {
@@ -388,11 +404,23 @@ export const Scid5CvPage: React.FC = () => {
       }
 
       if (phase === 'general_assessment') {
-        return <GeneralAssessment onProceed={handleProceedToModules} />;
+        return (
+          <GeneralAssessment 
+            onProceed={handleProceedToModules}
+            onBack={handleBackToClientDetail}
+            onExit={handleExitTest}
+          />
+        );
       }
 
       if (phase === 'module_selection') {
-        return <ModuleSelector onStart={handleStartQuestioning} />;
+        return (
+          <ModuleSelector 
+            onStart={handleStartQuestioning}
+            onBack={handleBackToGeneralAssessment}
+            onExit={handleExitTest}
+          />
+        );
       }
 
       if (phase === 'completed') {
@@ -403,6 +431,8 @@ export const Scid5CvPage: React.FC = () => {
             sessionNote={sessionNote}
             clientName={clientInfo?.fullName || 'Bilinmeyen'}
             sessionDate={sessionDate}
+            onBack={() => setPhase('questioning')}
+            onExit={handleExitTest}
           />
         );
       }
@@ -527,6 +557,8 @@ export const Scid5CvPage: React.FC = () => {
              totalQuestions={questionsToAsk.length}
              clientName={clientInfo?.fullName || 'Danışan'}
              currentModule={question.module || 'Genel'}
+             onBack={handleBackToModuleSelection}
+             onExit={handleExitTest}
            />
          );
       }
