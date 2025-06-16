@@ -1,5 +1,3 @@
-
-
 -- TABLO 1: profiles (Kullanıcı Profilleri)
 -- Supabase'in 'auth.users' tablosunu genişletir. Her ruh sağlığı uzmanının
 -- adı, unvanı gibi ek bilgilerini burada saklarız.
@@ -17,7 +15,7 @@ CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     full_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255),
+    email VARCHAR(255) UNIQUE,
     phone VARCHAR(20),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -40,48 +38,49 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO public.profiles (id, full_name)
-    VALUES (new.id, COALESCE(new.raw_user_meta_data->>'full_name', new.email));
+    VALUES (new.id, new.raw_user_meta_data->>'full_name');
     RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger'ı sil ve yeniden oluştur
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- GÜVENLİK: Row Level Security (RLS) Politikaları
--- Herkesin sadece kendi verisine erişmesini sağlar.
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE session_notes ENABLE ROW LEVEL SECURITY;
 
--- Mevcut politikaları sil
-DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can delete their own profile" ON profiles;
+-- GÜVENLİK BÖLÜMÜ --
 
-DROP POLICY IF EXISTS "Users can view their own clients" ON clients;
-DROP POLICY IF EXISTS "Users can insert their own clients" ON clients;
-DROP POLICY IF EXISTS "Users can update their own clients" ON clients;
-DROP POLICY IF EXISTS "Users can delete their own clients" ON clients;
+-- 1. ADIM: Satır Seviyesi Güvenliği (Row Level Security - RLS) Aktifleştirme
+-- Bu, her tablonun kendi güvenlik kurallarına uymasını zorunlu kılar.
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.session_notes ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Users can view their own session notes" ON session_notes;
-DROP POLICY IF EXISTS "Users can insert their own session notes" ON session_notes;
-DROP POLICY IF EXISTS "Users can update their own session notes" ON session_notes;
-DROP POLICY IF EXISTS "Users can delete their own session notes" ON session_notes;
-
--- Profiles tablosu için basitleştirilmiş politikalar
-CREATE POLICY "Enable all access for authenticated users to own profile" ON profiles 
+-- 2. ADIM: RLS Politikaları Oluşturma
+-- Bu politikalar, "kimin hangi satırlara erişebileceğini" tanımlar.
+-- Örn: "Her kullanıcı sadece kendi profilini görebilir."
+CREATE POLICY "Users can manage their own profile" ON public.profiles
     FOR ALL USING (auth.uid() = id);
 
--- Clients tablosu için basitleştirilmiş politikalar  
-CREATE POLICY "Enable all access for authenticated users to own clients" ON clients 
+CREATE POLICY "Users can manage their own clients" ON public.clients
     FOR ALL USING (auth.uid() = user_id);
 
--- Session notes tablosu için basitleştirilmiş politikalar
-CREATE POLICY "Enable all access for authenticated users to own session notes" ON session_notes 
+CREATE POLICY "Users can manage their own session notes" ON public.session_notes
     FOR ALL USING (auth.uid() = user_id);
 
+-- 3. ADIM: Genel Tablo İzinleri (GRANT)
+-- RLS politikalarının çalışabilmesi için, kullanıcıların önce tabloya
+-- genel bir erişim izni olması gerekir. Bu komutlar, bu genel izni verir.
+-- RLS, bu genel iznin üzerine bir filtre gibi çalışarak güvenliği sağlar.
+
+-- ŞEMA ERİŞİM İZİNLERİ - Bu satırları ekleyin
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT USAGE ON SCHEMA public TO anon;
+
+-- 'anon' (ziyaretçi/giriş yapmamış) rolüne, GİRİŞ/KAYIT işlemleri için izinler
+GRANT INSERT ON TABLE public.profiles TO anon;
+
+-- 'authenticated' (giriş yapmış kullanıcı) rolüne, tüm işlemler için izinler
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.clients TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.session_notes TO authenticated;
