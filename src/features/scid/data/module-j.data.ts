@@ -1,0 +1,12 @@
+import { ScidQuestion } from "./scid5cv.data";
+
+export const moduleJ_data: ScidQuestion[] = [
+  { id: 'J_START', module: 'J', type: 'instruction', text: '## J. UYUM BOZUKLUĞU \n\n *(Not: Bu modülü ancak, 1) Belirlenen tetikleyici bir etken varsa VE 2) Başka bir DSM-5 bozukluğu için tanı ölçütleri karşılanmıyorsa düşünün.)*'},
+  { id: 'J1', module: 'J', type: 'question', text: 'Son 6 ay içinde, belirtilerinizin başlamasından önceki 3 ay içinde tanımlanabilir bir tetikleyici etken (stresör) oldu mu?', criteria: 'A. Tanımlanabilir tetikleyici etken(ler)e tepki olarak...', options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }], skipLogic: { '-': 'SCID_END' } },
+  { id: 'J2', module: 'J', type: 'question', text: 'Bu belirtiler, tetikleyici etkenin ağırlığıyla orantısız, belirgin bir sıkıntıya VEYA toplumsal, işle ilgili alanlarda işlevsellikte ileri derecede düşmeye neden oluyor mu?', criteria: 'B. Bu belirtiler ya da davranışlar ... klinik açıdan önemlidir.', options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }], skipLogic: { '-': 'SCID_END' } },
+  { id: 'J3', module: 'J', type: 'question', text: 'Bu belirtiler, başka bir ruhsal hastalığın tanı ölçütlerini karşılıyor mu veya daha önceden var olan bir ruhsal bozukluğun yalnızca bir alevlenmesi mi?', criteria: 'C. Tetikleyici etkenle ilişkili bu bozukluk başka bir ruhsal hastalığın tanı ölçütlerini karşılamaz...', options: [{ label: 'Evet (Başka Tanı)', value: '-' }, { label: 'Hayır (Karşılamıyor)', value: '+' }], skipLogic: { '-': 'SCID_END' } },
+  { id: 'J4', module: 'J', type: 'question', text: 'Belirtiler olağan yası göstermez mi?', criteria: 'D. Belirtiler olağan yası göstermez.', options: [{ label: 'Evet (Yas Değil)', value: '+' }, { label: 'Hayır (Olağan Yas)', value: '-' }], skipLogic: { '-': 'SCID_END' } },
+  { id: 'J5', module: 'J', type: 'question', text: 'Tetikleyici etken (ya da bunun getirdiği sonuçlar) bir kez ortadan kalkınca, belirtiler bir altı aydan daha uzun bir süre daha sürdü mü?', criteria: 'E. ...belirtiler bir altı aydan daha uzun bir süre daha sürmez.', options: [{ label: 'Evet (6+ ay sürdü)', value: '-' }, { label: 'Hayır (<6 ay sürdü)', value: '+' }] },
+  { id: 'MODUL_J_SONU', module: 'J', type: 'summary', text: '## TANI: UYUM BOZUKLUĞU \n\n *(Alttürü belirtin: Çökkün Duygudurum ile, Kaygı ile, Karma vb.)*', skipLogic: { '*': 'SCID_END' } },
+  { id: 'SCID_END', module: 'END', type: 'instruction', text: '## SCID-5-CV GÖRÜŞMESİ TAMAMLANDI.' }
+];

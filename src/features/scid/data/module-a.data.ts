@@ -1,9 +1,9 @@
 // src/features/scid/data/module-a.data.ts
 
-import { ScidQuestion } from "./scid5cv.data"; // Ana tiplerimizi import edelim
+import { ScidQuestion } from "./scid5cv.data";
 
 export const moduleA_data: ScidQuestion[] = [
-  // --- O SIRADAKİ YEĞİN DEPRESYON DÖNEMİ ---
+  // --- O SIRADAKİ YEĞİN DEPRESYON DÖNEMİ (A1-A14) ---
   {
     id: 'A_START_INSTRUCTION',
     module: 'A',
@@ -14,22 +14,20 @@ export const moduleA_data: ScidQuestion[] = [
     id: 'A1',
     module: 'A',
     type: 'question',
-    text: `Geçen ay, (BİR AY ÖNCESİ)'nden beri, neredeyse her gün, günün büyük bir bölümünde, kendinizi çökkün ya da çok üzgün hissettiğiniz bir zaman dilimi oldu mu? (Üzgün, üzüntülü ya da çökkün göründüğünüzü söyleyen oldu mu?)
-    \n**YANIT HAYIRSA:** Neredeyse her gün, günün büyük bir bölümünde, kendinizi üzüntülü, boşlukta ya da umutsuz hissettiğiniz?`,
-    criteria: `**A. Ölçütü (1): Çökkün duygudurum**\n\nÇökkün duygudurum, neredeyse her gün, günün büyük bir bölümünde bulunur ve bu durumu ya kişinin kendisi bildirir (öm. üzüntülüdür, kendini boşlukta hisseder ya da umutsuzdur) ya da bu durum başkalarınca gözlenir (örn, ağlamaklı görünür).`,
+    text: `Geçen ay, (BİR AY ÖNCESİ)'nden beri, neredeyse her gün, günün büyük bir bölümünde, kendinizi çökkün ya da çok üzgün hissettiğiniz bir zaman dilimi oldu mu? (Üzgün, üzüntülü ya da çökkün göründüğünüzü söyleyen oldu mu?) \n\n**YANIT HAYIRSA:** Neredeyse her gün, günün büyük bir bölümünde, kendinizi üzüntülü, boşlukta ya da umutsuz hissettiğiniz? \n\n**BİRİNE EVET YANITI VERİLDİYSE:** Nasıl bir durumdu? Ne denli uzun sürdü? (2 hafta gibi bir süre?)`,
+    criteria: `**1. Çökkün duygudurum**, neredeyse her gün, günün büyük bir bölümünde bulunur...`,
     options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
-    notePlaceholder: 'Nasıl bir durumdu? Ne denli uzun sürdü? (2 hafta gibi bir süre?)',
+    notePlaceholder: 'Gözlemlerinizi ve danışanın ifadelerini not alın...',
   },
   {
     id: 'A2',
     module: 'A',
     type: 'question',
-    text: `Bu zaman diliminde, genellikle hoşlandığınız etkinliklere karşı daha az mı ilgi duydunuz ya da bunlardan daha az mı zevk aldınız? (Nasıl bir durumdu?)
-    \n**ÖNCEKİ MADDE "-" DEĞERLENDİRİLDİYSE:** Genellikle hoşlandığınız etkinliklere karşı daha az ilgi duyduğunuz ya da bunlardan daha az zevk aldığınız?`,
-    criteria: `**A. Ölçütü (2): İlgi/zevk kaybı (Anhedoni)**\n\nBütün ya da neredeyse bütün etkinliklere karşı ilgide belirgin azalma ya da bunlardan zevk almama durumu, neredeyse her gün, günün büyük bir bölümünde bulunur.`,
+    text: `Geçen ayki o zaman diliminde, genellikle hoşlandığınız etkinliklere karşı daha az mı ilgi duydunuz ya da bunlardan daha az mı zevk aldınız? (Nasıl bir durumdu?) \n\n**ÖNCEKİ MADDE "-" DEĞERLENDİRİLDİYSE:** Genellikle hoşlandığınız etkinliklere karşı daha az ilgi duyduğunuz ya da bunlardan daha az zevk aldığınız? \n\n**YUKARIDAKİLERDEN BİRİNE EVET YANITI VERİLDİYSE:** Neredeyse her gün müydü? Ne denli uzun sürdü? (2 hafta gibi bir süre?)`,
+    criteria: `**2. Bütün ya da neredeyse bütün etkinliklere karşı ilgide belirgin azalma** ya da bunlardan zevk almama durumu...`,
     options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
-    skipLogic: { check: 'A1_A2_HAYIR', target: 'A15' }, // Özel kontrol: A1 ve A2 hayırsa A15'e git
-    notePlaceholder: 'Neredeyse her gün müydü? Ne denli uzun sürdü? (2 hafta gibi bir süre?)',
+    skipLogic: { check: 'A1_A2_HAYIR', target: 'A15' },
+    notePlaceholder: 'Gözlemlerinizi ve danışanın ifadelerini not alın...',
   },
   {
     id: 'A_FOCUS_INSTRUCTION',
@@ -41,21 +39,687 @@ export const moduleA_data: ScidQuestion[] = [
     id: 'A3',
     module: 'A',
     type: 'question',
-    text: `Bu 2 haftalık süreçte yeme isteğiniz nasıldı? (Her zamankiyle karşılaştırınca? Yemek için kendinizi zorlamak durumunda kaldınız mı? Her zamankinden (daha az/daha çok) mu yediniz? Neredeyse her gün mü böyle oldu? Kilo verdiniz ya da aldınız mı?)`,
-    criteria: `**A. Ölçütü (3): Kilo/Yeme İsteği Değişikliği**\n\nKilo vermeye çalışmıyorken çok kilo verme ya da kilo alma (örn: bir ay içinde ağırlığının % 5'inden daha çok) ya da neredeyse her gün, yeme isteğinde azalma ya da artma.`,
+    text: `O 2 haftalık süreçte yeme isteğiniz nasıldı? (Her zamankiyle karşılaştırınca? Yemek için kendinizi zorlamak durumunda kaldınız mı? Her zamankinden (daha az/daha çok) mu yediniz? Neredeyse her gün mü böyle oldu? Kilo verdiniz ya da aldınız mı?) \n\n**YANIT EVETSE:** Ne denli? ((Kilo vermeye/almaya) çalışıyor muydunuz?)`,
+    criteria: `**3. Kilo vermeye çalışmıyorken çok kilo verme ya da kilo alma** (örn: bir ay içinde ağırlığının % 5'inden daha çok)... ya da yeme isteğinde azalma ya da artma.`,
     options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
-    notePlaceholder: 'Ne denli? ((Kilo vermeye/almaya) çalışıyor muydunuz?)',
   },
   {
     id: 'A4',
     module: 'A',
     type: 'question',
-    text: 'Uykunuz nasıldı? (Uykuya dalmakta güçlük, sık sık uyanma, uykuyu sürdürmekte güçlük, çok erken kalkma YA DA çok uyuma?)',
-    criteria: `**A. Ölçütü (4): Uyku bozukluğu**\n\nNeredeyse her gün, uykusuzluk çekme ya da aşırı uyuma.`,
+    text: `Uykunuz nasıldı? (Uykuya dalmakta güçlük, sık sık uyanma, uykuyu sürdürmekte güçlük, çok erken kalkma YA DA çok uyuma?) \n\nKaç saat uyuyordunuz (kestirmeler de içinde olmak üzere)? (Çökkün olmadan) önce genelde kaç saat uyurdunuz? Neredeyse her gece mi böyle oluyordu?`,
+    criteria: `**4. Neredeyse her gün, uykusuzluk çekme ya da aşırı uyuma.**`,
     options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
-    notePlaceholder: 'Kaç saat uyuyordunuz (kestirmeler de içinde olmak üzere)? Çökkün olmadan önce genelde kaç saat uyurdunuz? Neredeyse her gece mi böyle oluyordu?',
   },
-  // ... PDF'teki A5'ten A77'ye kadar olan tüm sorular buraya aynı formatta eklenecek.
-  // Bu, projenin en önemli veri giriş kısmıdır. Her sorunun metni, kriteri, not istemi
-  // ve özellikle atlama mantığı (skipLogic) doğru bir şekilde girilmelidir.
+  {
+    id: 'A5',
+    module: 'A',
+    type: 'question',
+    text: `Dingin bir biçimde oturamayacak denli, yerinde duramayan ya da huzursuz biri miydiniz? \n\n**YA DA TAM TERSİ:** Daha yavaş konuşma ya da sizin için olağan sayılamayacak bir biçimde daha yavaş hareket etme? \n\n(Her bir durumda, bu başkalarının ayırt edebileceği denli kötü müydü? Neyi ayırt ettiler? Neredeyse her gün mü böyle oluyordu?)`,
+    criteria: `**5. Neredeyse her gün, psikodevinsel kıpırdanma (ajitasyon) ya da yavaşlama** (başkalarınca gözlenebilir).`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  },
+  {
+    id: 'A6',
+    module: 'A',
+    type: 'question',
+    text: 'İçsel gücünüz (enerjiniz) nasıldı? (Her zaman yorgun? Neredeyse her gün?)',
+    criteria: `**6. Neredeyse her gün, bitkinlik ya da içsel gücün kalmaması.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  },
+  {
+    id: 'A7',
+    module: 'A',
+    type: 'question',
+    text: `Kendinizi değersiz hissediyor muydunuz? Yaptıklarınız ya da yapmadıklarınız için suçluluk duyma? \n\n**YANIT EVETSE:** Ne gibi konularda? (Yalnızca, bir süredir hasta olmanızdan ötürü gerekenleri yapamadığınız için mi?) \n\n**YUKARIDAKİLERDEN BİRİNE VERİLEN YANIT EVETSE:** Neredeyse her gün mü?`,
+    criteria: `**7. Neredeyse her gün, değersizlik ya da aşırı ya da uygunsuz suçluluk duyguları.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  },
+  {
+    id: 'A8',
+    module: 'A',
+    type: 'question',
+    text: 'Düşünmekte ya da odaklanmakta güçlük çekiyor muydunuz? Günlük olaylarla ilgili olarak karar vermekte güçlük çekiyor muydunuz? (Ne gibi olayları engelliyordu? Neredeyse her gün mü?)',
+    criteria: `**8. Neredeyse her gün, düşünmekte ya da odaklanmakta güçlük çekme ya da kararsızlık yaşama.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  },
+  {
+    id: 'A9',
+    module: 'A',
+    type: 'question',
+    text: `Olup bitenler öylesine kötü olduğu için ölüm düşünceleriniz oldu mu ya da "ölmüş olsaydım daha iyi olurdu" diye düşündüğünüz oldu mu? Yaşamınızı sonlandırmayı düşündünüz mü? \n\n**YANIT EVETSE:** Bununla ilgili olarak bir eylemde bulundunuz mu? (Ne yaptınız? Özel bir tasarı yaptınız mı? Hazırlık yaptınız mı? Gerçek bir girişiminiz oldu mu?)`,
+    criteria: `**9. Yineleyici ölüm düşünceleri**, özel eylem tasarlamaksızın yineleyici kendini öldürme düşünceleri ya da kendini öldürme girişimi ya da kendini öldürmek üzere özel bir eylem tasarlama.`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  },
+  {
+    id: 'A10',
+    module: 'A',
+    type: 'calculation',
+    text: 'DEĞERLENDİRME: Yukarıdaki A tanı ölçütü belirtilerinden (A1-A9) en az 5 tanesi karşılandı mı?',
+    criteria: "YUKARIDAKİ A TANI ÖLÇÜTÜ BELİRTİLERİNDEN EN AZ BEŞİ (A1-A9) '+' OLARAK DEĞERLENDİRİLİR.",
+    calculation: {
+      sources: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'],
+      condition: 'count_positive',
+      threshold: 5,
+    },
+    skipLogic: { 'EVET': 'A11', 'HAYIR': 'A15' }
+  },
+  {
+    id: 'A11',
+    module: 'A',
+    type: 'question',
+    text: `Bu belirtilerin yaşamınız üzerinde nasıl bir etkisi oldu? İlişkilerinizi, iş/okul hayatınızı veya evdeki sorumluluklarınızı etkiledi mi? \n\n(ÇÖKKÜNLÜK BELİRTİLERİ) olmasından ötürü ne denli rahatsız ya da altüst oldunuz?`,
+    criteria: `**B. Bu belirtiler klinik açıdan belirgin bir sıkıntıya ya da toplumsal, işle ilgili alanlarda ya da önemli diğer işlevsellik alanlarında işlevsellikte düşmeye neden olur.**`,
+    options: [{ label: 'Evet, Düşme Var', value: '+' }, { label: 'Hayır, Düşme Yok', value: '-' }],
+    skipLogic: { '-': 'A15' },
+  },
+  {
+    id: 'A12',
+    module: 'A',
+    type: 'question',
+    text: 'Bu depresyon döneminiz başlamadan hemen önce bedensel bir hastalık geçiriyor muydunuz? Herhangi bir ilaç alıyor muydunuz? İçki içiyor muydunuz ya da herhangi bir madde kullanıyor muydunuz?',
+    criteria: `**C. Bu dönem, bir maddenin (örn, kötüye kullanılabilen bir madde, bir ilaç) ya da başka bir sağlık durumunun fizyolojiyle ilgili etkilerine bağlanamaz.**`,
+    options: [{ label: 'Birincil (Bağlanamaz)', value: 'BIRINCIL' }, { label: 'İkincil (Bağlanabilir)', value: 'IKINCIL' }],
+    skipLogic: { '*': 'A13' }
+  },
+  {
+    id: 'A13',
+    module: 'A',
+    type: 'text',
+    text: 'Bu (Çökkünlük) dönemi ne zaman başladı?',
+    notePlaceholder: 'Depresyonun başlangıcı (ay/yıl)'
+  },
+  {
+    id: 'A14',
+    module: 'A',
+    type: 'text',
+    text: 'Yaşamınızda kaç ayrı kez, en az 2 hafta süreyle, tanımladığınız gibi belirtilerin birçoğunu yaşadınız?',
+    notePlaceholder: 'Yeğin Depresyon Dönemlerinin toplam sayısı...',
+    skipLogic: { '*': 'A29' }
+  },
+
+  // --- GEÇMİŞ YEĞİN DEPRESYON DÖNEMİ (A15-A28) ---
+
+  
+  {
+    id: 'A15',
+    module: 'A',
+    type: 'question',
+    text: `Hiç başka bir zaman, neredeyse her gün, günün büyük bir bölümünde, kendinizi çökkün ya da çok üzgün hissettiğiniz (en az 2 hafta süren) bir zaman dilimi oldu mu? \n\n(Nasıl bir durumdu? Ne denli uzun sürdü?)`,
+    criteria: `**1. Çökkün duygudurum (Geçmiş)**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  },
+  {
+    id: 'A16',
+    module: 'A',
+    type: 'question',
+    text: `Hiç başka bir zaman, genellikle hoşlandığınız etkinliklere karşı daha az ilgi duyduğunuz ya da bunlardan daha az zevk aldığınız (en az 2 hafta süren) bir zaman dilimi oldu mu? \n\n(Bu ne zamandı? Neredeyse her gün müydü? Ne denli uzun sürdü?)`,
+    criteria: `**2. İlgi/zevk kaybı (Geçmiş)**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+    skipLogic: { check: 'A15_A16_HAYIR', target: 'A29' },
+  },
+  {
+    id: 'A_FOCUS_INSTRUCTION_PAST',
+    module: 'A',
+    type: 'instruction',
+    text: '### SORGULADIĞINIZ GEÇMİŞ YEĞİN DEPRESYON DÖNEMİNİN EN KÖTÜ 2 HAFTASINA ODAKLANIN:',
+},
+{
+    id: 'A17',
+    module: 'A',
+    type: 'question',
+    text: `O 2 haftalık süreçte yeme isteğiniz nasıldı? (Her zamankinden (daha az/daha çok) mu yediniz? Neredeyse her gün mü böyle oldu? Kilo verdiniz ya da aldınız mı?) \n\nNe denli? ((Kilo vermeye/almaya) çalışıyor muydunuz?)`,
+    criteria: `**3. Kilo vermeye çalışmıyorken çok kilo verme ya da kilo alma**... ya da yeme isteğinde azalma ya da artma.`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A18',
+    module: 'A',
+    type: 'question',
+    text: `Uykunuz nasıldı? (Uykuya dalmakta güçlük, sık sık uyanma, uykuyu sürdürmekte güçlük, çok erken kalkma YA DA çok uyuma?) \n\nKaç saat uyuyordunuz? Normalde kaç saat uyurdunuz? Neredeyse her gece mi böyle oluyordu?`,
+    criteria: `**4. Neredeyse her gün, uykusuzluk çekme ya da aşırı uyuma.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A19',
+    module: 'A',
+    type: 'question',
+    text: `Dingin oturamayacak denli, yerinde duramayan ya da huzursuz biri miydiniz? \n\n**YA DA TAM TERSİ:** Daha yavaş konuşma ya da sizin için olağan sayılamayacak bir biçimde daha yavaş hareket etme? \n\n(Her bir durumda, bu başkalarının ayırt edebileceği denli kötü müydü? Neredeyse her gün mü böyle oluyordu?)`,
+    criteria: `**5. Neredeyse her gün, psikodevinsel kıpırdanma (ajitasyon) ya da yavaşlama** (başkalarınca gözlenebilir).`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A20',
+    module: 'A',
+    type: 'question',
+    text: 'İçsel gücünüz (enerjiniz) nasıldı? (Her zaman yorgun? Neredeyse her gün?)',
+    criteria: `**6. Neredeyse her gün, bitkinlik ya da içsel gücün kalmaması.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A21',
+    module: 'A',
+    type: 'question',
+    text: `Kendinizi değersiz hissediyor muydunuz? Yaptıklarınız ya da yapmadıklarınız için suçluluk duyma? \n\n**YANIT EVETSE:** Ne gibi konularda? (Yalnızca, bir süredir hasta olmanızdan ötürü gerekenleri yapamadığınız için mi?) \n\n**YUKARIDAKİLERDEN BİRİNE VERİLEN YANIT EVETSE:** Neredeyse her gün mü?`,
+    criteria: `**7. Neredeyse her gün, değersizlik ya da aşırı ya da uygunsuz suçluluk duyguları.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A22',
+    module: 'A',
+    type: 'question',
+    text: 'Düşünmekte ya da odaklanmakta güçlük çekiyor muydunuz? Günlük olaylarla ilgili olarak karar vermekte güçlük çekiyor muydunuz? (Ne gibi olayları engelliyordu? Neredeyse her gün mü?)',
+    criteria: `**8. Neredeyse her gün, düşünmekte ya da odaklanmakta güçlük çekme ya da kararsızlık yaşama.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A23',
+    module: 'A',
+    type: 'question',
+    text: `Olup bitenler öylesine kötü olduğu için ölüm düşünceleriniz oldu mu ya da "ölmüş olsaydım daha iyi olurdu" diye düşündüğünüz oldu mu? Yaşamınızı sonlandırmayı düşündünüz mü? \n\n**YANIT EVETSE:** Bununla ilgili olarak bir eylemde bulundunuz mu? (Ne yaptınız? Özel bir tasarı yaptınız mı?)`,
+    criteria: `**9. Yineleyici ölüm düşünceleri**, kendini öldürme girişimi ya da tasarlama.`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A24',
+    module: 'A',
+    type: 'calculation',
+    text: 'DEĞERLENDİRME: Geçmiş dönem için belirtilerden (A15-A23) en az 5 tanesi karşılandı mı?',
+    criteria: "YUKARIDAKİ A TANI ÖLÇÜTÜ BELİRTİLERİNDEN EN AZ BEŞİ (A15-A23) '+' OLARAK DEĞERLENDİRİLİR.",
+    calculation: {
+      sources: ['A15', 'A16', 'A17', 'A18', 'A19', 'A20', 'A21', 'A22', 'A23'],
+      condition: 'count_positive',
+      threshold: 5,
+    },
+    skipLogic: { 'EVET': 'A25', 'HAYIR': 'A29' }
+},
+{
+    id: 'A25',
+    module: 'A',
+    type: 'question',
+    text: `O dönemdeki belirtilerin yaşamınız üzerinde nasıl bir etkisi oldu? İlişkilerinizi, iş/okul hayatınızı veya evdeki sorumluluklarınızı etkiledi mi?`,
+    criteria: `**B. Bu belirtiler klinik açıdan belirgin bir sıkıntıya ya da işlevsellikte düşmeye neden olur.**`,
+    options: [{ label: 'Evet, Düşme Var', value: '+' }, { label: 'Hayır, Düşme Yok', value: '-' }],
+    skipLogic: { '-': 'A29' },
+},
+{
+    id: 'A26',
+    module: 'A',
+    type: 'question',
+    text: 'O depresyon döneminiz başlamadan önce bedensel bir hastalık, ilaç veya madde kullanımı var mıydı?',
+    criteria: `**C. Bu dönem, bir maddenin ya da başka bir sağlık durumunun fizyolojiyle ilgili etkilerine bağlanamaz.**`,
+    options: [{ label: 'Birincil (Bağlanamaz)', value: 'BIRINCIL' }, { label: 'İkincil (Bağlanabilir)', value: 'IKINCIL' }],
+},
+{
+    id: 'A27-28',
+    module: 'A',
+    type: 'text',
+    text: 'O (çökkünlük) dönemi ne zaman başladı ve yaşamınızda kaç ayrı kez bu şekilde dönem yaşadınız?',
+    notePlaceholder: 'Depresyonun başlangıcı (ay/yıl) ve toplam dönem sayısı...',
+    skipLogic: { '*': 'A29' }
+},
+  // --- O SIRADAKİ MANİ DÖNEMİ (A29-A40) ---
+  {
+    id: 'A29',
+    module: 'A',
+    type: 'question',
+    text: `Geçen ay, aşağıdaki durumlardan herhangi biri oldu mu?
+    \n1. Kendinizi çok iyi, "taşkın", coşkulu ya da "yükseklerde" hissettiğiniz bir dönem?
+    \n2. (Eğer 1. yoksa) Kendinizi çok çabuk köpürecek gibi, sinirli ya da öfkeli hissettiğiniz bir dönem?`,
+    criteria: `**MANİ DÖNEMİ TANI ÖLÇÜTLERİ \n\nA. Kabarmış, taşkın ya da çabuk kızan, olağandışı ve sürekli, ayrı bir duygudurum dönemi.**`,
+    // Seçenekleri, duygudurum tipini belirtecek şekilde güncelliyoruz:
+    options: [
+        { label: 'Evet (Taşkın/Coşkulu)', value: 'elevated' }, 
+        { label: 'Evet (Sadece Sinirli)', value: 'irritable' }, 
+        { label: 'Hayır', value: '-' }
+    ],
+    skipLogic: { '-': 'A54' }
+},
+  {
+    id: 'A30',
+    module: 'A',
+    type: 'question',
+    text: 'Bu durum en az 1 hafta sürdü mü veya hastaneye yatırılmanızı gerektirecek kadar ağır mıydı?',
+    criteria: `**Süre:** En az 1 hafta süren (ya da hastaneye yatırılmayı gerektirmişse herhangi bir süre).`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+    skipLogic: { '-': 'A41' }
+  },
+  // --- O SIRADAKİ MANİ DÖNEMİ (A31-A40) ---
+{
+  id: 'A31',
+  module: 'A',
+  type: 'question',
+  text: 'O zaman kendinizle ilgili olarak ne hissediyordunuz? (Her zamankinden çok daha kendine güvenli? Başka herkesten çok daha akıllı ya da iyi hissediyor muydunuz? Özel birtakım güçleriniz ya da yetenekleriniz varmış gibi geliyor muydu?)',
+  criteria: `**1. Benlik saygısında abartılı bir artış ya da büyüklük düşünceleri.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A32',
+  module: 'A',
+  type: 'question',
+  text: 'Her zamankinden daha az mı uykuya gereksiniyordunuz? (Ne denli bir süre uyku uyuyordunuz?) Yine de kendinizi dinlenmiş olarak hissediyor muydunuz?',
+  criteria: `**2. Uyku gereksiniminde azalma** (örn, yalnızca üç saatlik bir uykuyla kendini dinlenmiş olarak duyumsar).`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A33',
+  module: 'A',
+  type: 'question',
+  text: 'Her zamankinden daha konuşkan mıydınız? (İnsanlar sizi durdurmakta ya da anlamakta güçlük çekiyorlar mıydı?)',
+  criteria: `**3. Her zamankinden daha konuşkan olma ya da konuşmaya tutma.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A34',
+  module: 'A',
+  type: 'question',
+  text: 'Düşünceleriniz sanki birbirleriyle yarışıyor gibi mi geliyordu? (Nasıl bir durumdu?)',
+  criteria: `**4. Düşünce uçuşması ya da düşüncelerinin sanki birbirleriyle yarışıyor gibi birbiri ardı sıra geldiğine ilişkin öznel yaşantı.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A35',
+  module: 'A',
+  type: 'question',
+  text: 'Çevrenizde olup bitenlerle dikkatiniz kolaylıkla dağılıyor, dolayısıyla odaklanmakta ya da belirli bir konuda kalmakta güçlük çekiyor muydunuz?',
+  criteria: `**5. Dikkat dağınıklığı** (dikkati, önemsiz ya da ilgisiz bir dış uyarana kolaylıkla dağılır).`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A36',
+  module: 'A',
+  type: 'question',
+  text: 'Zamanınızı nasıl geçiriyordunuz? (İş, arkadaşlar, cinsel etkinlikler?) Amaca yönelik etkinliklerinizde bir artış var mıydı?',
+  criteria: `**6. Amaca yönelik etkinlikte artma** (toplumsal olarak, işte ya da okulda ya da cinsel bağlamda) ya da psikodevinsel taşkınlık (ajitasyon).`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A37',
+  module: 'A',
+  type: 'question',
+  text: 'Size ya da ailenize bir sorun çıkaracak, kötü sonuçlar doğurabilecek herhangi bir şey yapıyor muydunuz? (Aşırı para harcama, düşüncesizce cinsel girişimler, gereksiz iş yatırımları gibi?)',
+  criteria: `**7. Kötü sonuçlar doğurabilecek etkinliklere aşırı katılma.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A38',
+  module: 'A',
+  type: 'calculation',
+  text: 'DEĞERLENDİRME: Mani belirtilerinden (A31-A37) yeterli sayıda karşılandı mı?',
+  criteria: "YUKARIDAKİ B TANI ÖLÇÜTÜ BELİRTİLERİNDEN (A31-A37) EN AZ ÜÇÜ '+' OLARAK DEĞERLENDİRİLİR (YALNIZCA ÇABUK KIZAN DUYGUDURUM VARSA DÖRDÜ).",
+  calculation: {
+      sources: ['A31', 'A32', 'A33', 'A34', 'A35', 'A36', 'A37'],
+      condition: 'count_positive_mania', // Yeni koşul adımız
+      contextSourceId: 'A29' // Hangi sorunun cevabına bakılacağını belirtir
+  },
+  skipLogic: { 'EVET': 'A39', 'HAYIR': 'A54' }
+},
+{
+  id: 'A39',
+  module: 'A',
+  type: 'question',
+  text: 'Bu duygudurum bozukluğu, toplumsal ya da işle ilgili işlevsellikte belirgin bir düşmeye neden olacak denli ağır mıydı ya da kendinize ya da başkalarına bir zarar vermemeniz için hastaneye yatırılmanızı gerektirdi mi? Psikoz özellikleri var mıydı?',
+  criteria: `**C. Duygudurum bozukluğu, toplumsal ya da işle ilgili işlevsellikte belirgin bir düşmeye neden olacak denli... ağırdır ya da psikoz özellikleri vardır.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  skipLogic: { '-': 'A41' },
+},
+{
+  id: 'A40',
+  module: 'A',
+  type: 'question',
+  text: 'Bu dönem, bir maddenin ya da başka bir sağlık durumunun fizyolojik etkilerine bağlanabilir mi?',
+  criteria: `**D. Bu dönem, bir maddenin ya da başka bir sağlık durumunun fizyolojiyle ilgili etkilerine bağlanamaz.**`,
+  options: [{ label: 'Birincil (Bağlanamaz)', value: 'BIRINCIL' }, { label: 'İkincil (Bağlanabilir)', value: 'IKINCIL' }],
+  skipLogic: { '*': 'B1' } // Sonraki Modüle geçiş
+},
+
+  // --- O SIRADAKİ HİPOMANİ DÖNEMİ (A41-A53) ---
+  {
+    id: 'A41',
+    module: 'A',
+    type: 'question',
+    text: `Kendinizi (taşkın/çabuk kızan) biri olarak hissettiğiniz zaman dilimi en az 4 ardışık gün sürdü mü? Neredeyse her gün, günün büyük bir bölümünde sürdü mü?`,
+    criteria: `**HİPOMANİ DÖNEMİ TANI ÖLÇÜTLERİ \n\nA. En az 4 ardışık gün süren**, kabarmış, taşkın ya da çabuk kızan duygudurum.`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+    skipLogic: { '-': 'A54' }
+  },
+  // --- O SIRADAKİ HİPOMANİ DÖNEMİ (A42-A53) ---
+  {
+  id: 'A_FOCUS_INSTRUCTION_HYPOMANIA',
+  module: 'A',
+  type: 'instruction',
+  text: '### SORGULADIĞINIZ HİPOMANİ DÖNEMİNİN EN AĞIR GEÇEN ZAMAN DİLİMİNE ODAKLANIN:',
+},
+{
+  id: 'A42',
+  module: 'A',
+  type: 'question',
+  text: 'O zaman kendinizle ilgili olarak ne hissediyordunuz? (Her zamankinden çok daha kendine güvenli? Başka herkesden çok daha akıllı ya da iyi hissediyor muydunuz? Özel birtakım güçleriniz ya da yetenekleriniz varmış gibi geliyor muydu?)',
+  criteria: `**1. Benlik saygısında abartılı bir artış ya da büyüklük düşünceleri.** `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A43',
+  module: 'A',
+  type: 'question',
+  text: 'Her zamankinden daha az mı uykuya gereksiniyordunuz? (Ne denli bir süre uyku uyuyordunuz?) Yine de kendinizi dinlenmiş olarak hissediyor muydunuz?',
+  criteria: `**2. Uyku gereksiniminde azalma** (örn, yalnızca üç saatlik bir uykuyla kendini dinlenmiş olarak duyumsar). `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A44',
+  module: 'A',
+  type: 'question',
+  text: 'Her zamankinden daha konuşkan mıydınız? (İnsanlar sizi durdurmakta ya da anlamakta güçlük çekiyorlar mıydı?)',
+  criteria: `**3. Her zamankinden daha konuşkan olma ya da konuşmaya tutma.** `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A45',
+  module: 'A',
+  type: 'question',
+  text: 'Düşünceleriniz sanki birbirleriyle yarışıyor gibi mi geliyordu? (Nasıl bir durumdu?)',
+  criteria: `**4. Düşünce uçuşması ya da düşüncelerinin sanki birbirleriyle yarışıyor gibi birbiri ardı sıra geldiğine ilişkin öznel yaşantı.** `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A46',
+  module: 'A',
+  type: 'question',
+  text: 'Çevrenizde olup bitenlerle dikkatiniz kolaylıkla dağılıyor, dolayısıyla odaklanmakta ya da belirli bir konuda kalmakta güçlük çekiyor muydunuz? (Bununla ilgili olarak bana bir örnek verir misiniz?)',
+  criteria: `**5. Dikkat dağınıklığı** (kişinin dikkati, önemsiz ya da ilgisiz bir dış uyarana kolaylıkla dağılır) olduğu bildirilir ya da öyle olduğu gözlenir. `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A47',
+  module: 'A',
+  type: 'question',
+  text: 'Zamanınızı nasıl geçiriyordunuz? (İş, arkadaşlar, eğlence uğraşları?) Amaca yönelik etkinliklerinizde (toplumsal, iş/okul, cinsel) bir artış var mıydı?',
+  criteria: `**6. Amaca yönelik etkinlikte artma** (toplumsal olarak işte ya da okulda ya da cinsel bağlamda) ya da psikodevinsel taşkınlık (ajitasyon). `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A48',
+  module: 'A',
+  type: 'question',
+  text: 'Size ya da ailenize bir sorun çıkaracak, kötü sonuçlar doğurabilecek herhangi bir şey yapıyor muydunuz? (Aşırı para harcama, düşüncesizce cinsel girişimler, gereksiz iş yatırımları gibi?)',
+  criteria: `**7. Kötü sonuçlar doğurabilecek etkinliklere aşırı katılma.** `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A49',
+  module: 'A',
+  type: 'calculation',
+  text: 'DEĞERLENDİRME: Hipomani belirtilerinden (A42-A48) en az 3 tanesi (sadece çabuk kızan duygudurum varsa 4 tanesi) karşılandı mı?',
+  criteria: "YUKARIDAKİ B TANI ÖLÇÜTÜ BELİRTİLERİNDEN (A42-A48) EN AZ ÜÇÜ '+' OLARAK DEĞERLENDİRİLİR... ",
+  calculation: {
+      sources: ['A42', 'A43', 'A44', 'A45', 'A46', 'A47', 'A48'],
+      condition: 'count_positive_mania',
+      threshold: 3,
+  },
+  skipLogic: { 'EVET': 'A50', 'HAYIR': 'A54' }
+},
+{
+  id: 'A50',
+  module: 'A',
+  type: 'question',
+  text: 'Bu dönem, sizin belirtisiz olduğunuz zamanlardaki işlevselliğinizden belirgin bir değişiklik gösteriyor muydu?',
+  criteria: `**C. Bu dönem, kişinin belirtisiz olduğu zamanlarda olduğundan çok daha değişik, işlevsellikte belirgin bir değişikliğin görüldüğü bir dönemdir.** `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  skipLogic: { '-': 'A54' },
+},
+{
+  id: 'A51',
+  module: 'A',
+  type: 'question',
+  text: 'Başkaları sizdeki bu değişikliği fark ettiler mi?',
+  criteria: `**D. Duygudurum bozukluğu ve işlevsellikte olan değişiklik başkalarınca gözlenebilir.** `,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  skipLogic: { '-': 'A54' },
+},
+{
+  id: 'A52',
+  module: 'A',
+  type: 'question',
+  text: 'Bu dönem, işlevsellikte belirgin bir düşmeye neden olacak ya da hastaneye yatırılmanızı gerektirecek denli ağır mıydı?',
+  criteria: `**E. Bu dönem, toplumsal ya da işle ilgili işlevsellikte belirgin bir düşmeye neden olacak denli... ağır değildir.** `,
+  options: [{ label: 'Evet (Ağır)', value: '-' }, { label: 'Hayır (Ağır Değil)', value: '+' }],
+  notePlaceholder: 'Eğer cevap EVET ise, A31\'e geri dönüp Mani olarak değerlendirin.',
+},
+{
+  id: 'A53',
+  module: 'A',
+  type: 'question',
+  text: 'Bu dönem, bir maddenin ya da başka bir sağlık durumunun fizyolojik etkilerine bağlanabilir mi?',
+  criteria: `**F. Bu dönem, bir maddenin... etkilerine bağlanamaz.** `,
+  options: [{ label: 'Birincil (Bağlanamaz)', value: 'BIRINCIL' }, { label: 'İkincil (Bağlanabilir)', value: 'IKINCIL' }],
+  skipLogic: { '*': 'A54' }
+},
+  // --- GEÇMİŞ MANİ DÖNEMİ (A54-A65) ---
+  {
+    id: 'A54',
+    module: 'A',
+    type: 'question',
+    text: `Hiç başka bir zaman, aşağıdaki durumlardan herhangi biri oldu mu?
+    \n1. Kendinizi çok iyi, "taşkın" ya da "yükseklerde" hissettiğiniz bir dönem?
+    \n2. (Eğer 1. yoksa) Çok sinirli olduğunuz bir dönem?`,
+    criteria: `**GEÇMİŞ MANİ DÖNEMİ**`,
+    options: [
+        { label: 'Evet (Taşkın/Coşkulu)', value: 'elevated' }, 
+        { label: 'Evet (Sadece Sinirli)', value: 'irritable' }, 
+        { label: 'Hayır', value: '-' }
+    ],
+    skipLogic: { '-': 'A66' } 
+},
+  // --- GEÇMİŞ MANİ DÖNEMİ (A55-A65) ---
+  {
+    id: 'A55',
+    module: 'A',
+    type: 'question',
+    text: 'Bu durum en az 1 hafta sürdü mü veya hastaneye yatırılmanızı gerektirecek kadar ağır mıydı?',
+    criteria: `**Süre:** En az 1 hafta süren...`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+    skipLogic: { '-': 'A66' },
+},
+{
+    id: 'A56',
+    module: 'A',
+    type: 'question',
+    text: 'O zaman kendinizle ilgili olarak ne hissediyordunuz? (Her zamankinden çok daha kendine güvenli? Özel güçleriniz varmış gibi?)',
+    criteria: `**1. Benlik saygısında abartılı bir artış ya da büyüklük düşünceleri.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A57',
+    module: 'A',
+    type: 'question',
+    text: 'Her zamankinden daha az mı uykuya gereksiniyordunuz? (Ne kadar uyuyordunuz?)',
+    criteria: `**2. Uyku gereksiniminde azalma.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A58',
+    module: 'A',
+    type: 'question',
+    text: 'Her zamankinden daha konuşkan mıydınız?',
+    criteria: `**3. Her zamankinden daha konuşkan olma ya da konuşmaya tutma.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A59',
+    module: 'A',
+    type: 'question',
+    text: 'Düşünceleriniz sanki birbirleriyle yarışıyor gibi mi geliyordu?',
+    criteria: `**4. Düşünce uçuşması ya da düşüncelerinin yarışması.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A60',
+    module: 'A',
+    type: 'question',
+    text: 'Dikkatiniz kolaylıkla dağılıyor, odaklanmakta güçlük çekiyor muydunuz?',
+    criteria: `**5. Dikkat dağınıklığı.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A61',
+    module: 'A',
+    type: 'question',
+    text: 'Zamanınızı nasıl geçiriyordunuz? Amaca yönelik etkinliklerinizde bir artış var mıydı?',
+    criteria: `**6. Amaca yönelik etkinlikte artma ya da psikodevinsel kışkırma.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A62',
+    module: 'A',
+    type: 'question',
+    text: 'Size ya da ailenize bir sorun çıkaracak, kötü sonuçlar doğurabilecek herhangi bir şey yapıyor muydunuz?',
+    criteria: `**7. Kötü sonuçlar doğurabilecek etkinliklere aşırı katılma.**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+    id: 'A63',
+    module: 'A',
+    type: 'calculation',
+    text: 'DEĞERLENDİRME: Geçmiş Mani belirtilerinden (A56-A62) yeterli sayıda karşılandı mı?',
+    criteria: "YUKARIDAKİ B TANI ÖLÇÜTÜ BELİRTİLERİNDEN (A56-A62) EN AZ ÜÇÜ '+' OLARAK DEĞERLENDİRİLİR (YALNIZCA ÇABUK KIZAN DUYGUDURUM VARSA DÖRDÜ).",
+    calculation: {
+        sources: ['A56', 'A57', 'A58', 'A59', 'A60', 'A61', 'A62'],
+        condition: 'count_positive_mania',
+        contextSourceId: 'A54'
+    },
+    skipLogic: { 'EVET': 'A64', 'HAYIR': 'A66' }
+},
+{
+    id: 'A64',
+    module: 'A',
+    type: 'question',
+    text: 'O dönemdeki duygudurum bozukluğu, işlevsellikte belirgin bir düşmeye neden olacak denli ağır mıydı ya da hastaneye yatış gerektirdi mi?',
+    criteria: `**C. Duygudurum bozukluğu, toplumsal ya da işle ilgili işlevsellikte belirgin bir düşmeye neden olacak denli ağırdır...**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+    skipLogic: { '-': 'A66' },
+},
+{
+    id: 'A65',
+    module: 'A',
+    type: 'question',
+    text: 'O dönem, bir maddenin ya da başka bir sağlık durumunun etkilerine bağlanabilir mi?',
+    criteria: `**D. Bu dönem, bir maddenin... etkilerine bağlanamaz.**`,
+    options: [{ label: 'Birincil (Bağlanamaz)', value: 'BIRINCIL' }, { label: 'İkincil (Bağlanabilir)', value: 'IKINCIL' }],
+    skipLogic: { '*': 'A66' }
+},
+  
+  // --- GEÇMİŞ HİPOMANİ DÖNEMİ (A66-A77) ---
+  {
+    id: 'A66',
+    module: 'A',
+    type: 'question',
+    text: `Hiç başka bir zaman, kendinizi (taşkın/çabuk kızan) hissettiğiniz ve bu durumun en az 4 gün sürdüğü bir dönem oldu mu?`,
+    criteria: `**GEÇMİŞ HİPOMANİ DÖNEMİ**`,
+    options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+    skipLogic: { '-': 'MODUL_A_SONU' } // Modülün sonuna atla
+  },
+  // --- GEÇMİŞ HİPOMANİ DÖNEMİ (A67-A77) ---
+{
+  id: 'A67',
+  module: 'A',
+  type: 'question',
+  text: 'O zaman kendinizle ilgili olarak ne hissediyordunuz? (Daha kendine güvenli, daha akıllı?)',
+  criteria: `**1. Benlik saygısında abartılı bir artış ya da büyüklük düşünceleri.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A68',
+  module: 'A',
+  type: 'question',
+  text: 'Her zamankinden daha az mı uykuya gereksiniyordunuz?',
+  criteria: `**2. Uyku gereksiniminde azalma.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A69',
+  module: 'A',
+  type: 'question',
+  text: 'Her zamankinden daha konuşkan mıydınız?',
+  criteria: `**3. Her zamankinden daha konuşkan olma.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A70',
+  module: 'A',
+  type: 'question',
+  text: 'Düşünceleriniz sanki birbirleriyle yarışıyor gibi mi geliyordu?',
+  criteria: `**4. Düşünce uçuşması ya da düşüncelerinin yarışması.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A71',
+  module: 'A',
+  type: 'question',
+  text: 'Dikkatiniz kolaylıkla dağılıyor muydu?',
+  criteria: `**5. Dikkat dağınıklığı.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A72',
+  module: 'A',
+  type: 'question',
+  text: 'Amaca yönelik etkinliklerinizde bir artış var mıydı?',
+  criteria: `**6. Amaca yönelik etkinlikte artma ya da psikodevinsel kışkırma.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A73',
+  module: 'A',
+  type: 'question',
+  text: 'Kötü sonuçlar doğurabilecek etkinliklere aşırı katılıyor muydunuz?',
+  criteria: `**7. Kötü sonuçlar doğurabilecek etkinliklere aşırı katılma.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+},
+{
+  id: 'A74',
+  module: 'A',
+  type: 'calculation',
+  text: 'DEĞERLENDİRME: Geçmiş Hipomani belirtilerinden (A67-A73) yeterli sayıda karşılandı mı?',
+  criteria: "YUKARIDAKİ B TANI ÖLÇÜTÜ BELİRTİLERİNDEN (A67-A73) EN AZ ÜÇÜ '+' OLARAK DEĞERLENDİRİLİR...",
+  calculation: {
+      sources: ['A67', 'A68', 'A69', 'A70', 'A71', 'A72', 'A73'],
+      condition: 'count_positive_mania',
+      contextSourceId: 'A66_mood_type_placeholder' // Geçmiş hipomani için duygu tipi A66'dan türetilmelidir
+  },
+  skipLogic: { 'EVET': 'A75', 'HAYIR': 'A78' },
+},
+{
+  id: 'A75',
+  module: 'A',
+  type: 'question',
+  text: 'O dönem, sizin belirtisiz olduğunuz zamanlardaki işlevselliğinizden belirgin bir değişiklik gösteriyor muydu ve başkaları bu değişikliği fark etti mi?',
+  criteria: `**C. İşlevsellikte belirgin değişiklik.**\n**D. Değişiklik başkalarınca gözlenebilir.**`,
+  options: [{ label: 'Evet', value: '+' }, { label: 'Hayır', value: '-' }],
+  skipLogic: { '-': 'A78' },
+},
+{
+  id: 'A76',
+  module: 'A',
+  type: 'question',
+  text: 'O dönem, işlevsellikte belirgin bir düşmeye neden olacak ya da hastaneye yatış gerektirecek denli ağır mıydı?',
+  criteria: `**E. Bu dönem... ağır değildir.**`,
+  options: [{ label: 'Evet (Ağır)', value: '-' }, { label: 'Hayır (Ağır Değil)', value: '+' }],
+},
+{
+  id: 'A77',
+  module: 'A',
+  type: 'question',
+  text: 'O dönem, bir maddenin ya da başka bir sağlık durumunun etkilerine bağlanabilir mi?',
+  criteria: `**F. Bu dönem, bir maddenin... etkilerine bağlanamaz.**`,
+  options: [{ label: 'Birincil (Bağlanamaz)', value: 'BIRINCIL' }, { label: 'İkincil (Bağlanabilir)', value: 'IKINCIL' }],
+  skipLogic: { '*': 'A78' },
+},
+  
+  {
+    id: 'MODUL_A_SONU',
+    module: 'A',
+    type: 'instruction',
+    text: "## Modül A: Duygudurum Dönemleri Tamamlandı."
+  }
 ];
