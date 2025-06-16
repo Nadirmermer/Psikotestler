@@ -1,7 +1,11 @@
 // src/features/scid/components/ScidTestLayout.tsx
 
 import React from 'react';
-import { PanelLeft, BookOpen, StickyNote } from 'lucide-react';
+import { 
+  BookOpen,
+  StickyNote,
+  FileText
+} from 'lucide-react';
 
 interface ScidTestLayoutProps {
   questionArea: React.ReactNode;
@@ -10,6 +14,10 @@ interface ScidTestLayoutProps {
   sessionNoteArea: React.ReactNode;
   sessionNote: string;
   onSessionNoteChange: (note: string) => void;
+  currentQuestionIndex?: number;
+  totalQuestions?: number;
+  clientName?: string;
+  currentModule?: string;
 }
 
 export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
@@ -18,56 +26,95 @@ export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
   questionNoteArea,
   sessionNoteArea,
   sessionNote,
-  onSessionNoteChange
+  onSessionNoteChange,
+  currentQuestionIndex = 0,
+  totalQuestions = 0,
+  clientName = "Danışan",
+  currentModule = "Genel"
 }) => {
+  const progressPercentage = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-      {/* Üst Bilgi Alanı */}
-      <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 flex justify-between items-center">
-        <h1 className="text-lg font-bold">SCID-5-CV Görüşmesi</h1>
-        {/* Buraya danışan adı, zamanlayıcı gibi ek bilgiler gelebilir */}
-      </header>
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       
-      {/* Ana Çalışma Alanı */}
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 overflow-y-auto">
-        
-        {/* Sol Taraf: Sorular ve Soru Notları (%75) */}
-        <div className="lg:col-span-3 flex flex-col gap-4">
-          <div className="flex-grow bg-white dark:bg-gray-800 rounded-lg shadow p-6 overflow-y-auto">
-            {questionArea}
+      {/* Basit Header */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <FileText className="h-6 w-6 text-blue-600" />
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">SCID-5-CV</h1>
+              <p className="text-sm text-gray-500">{clientName} • Modül: {currentModule}</p>
+            </div>
           </div>
-          <div className="flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <h3 className="text-md font-semibold mb-2 flex items-center"><StickyNote className="h-4 w-4 mr-2 text-yellow-500"/> Soruya Özel Not</h3>
-            {questionNoteArea}
+          
+          {totalQuestions > 0 && (
+            <div className="text-right">
+              <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Ana İçerik - 2 Kolon */}
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* Sol Taraf - Sorular */}
+        <div className="flex-1 flex flex-col">
+          
+          {/* Soru Alanı */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              {questionArea}
+            </div>
           </div>
         </div>
 
-        {/* Sağ Taraf: DSM-5 Kriterleri ve Seans Notları (%25) */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg shadow p-4 overflow-y-auto">
-            <h3 className="text-md font-semibold mb-2 flex items-center"><BookOpen className="h-4 w-4 mr-2 text-blue-500"/> DSM-5 Kriterleri</h3>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              {criteriaArea}
+        {/* Sağ Taraf - Kriterler ve Seans Notları */}
+        <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+          
+          {/* DSM-5 Kriterleri */}
+          <div className="flex-1 p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-2 mb-3">
+              <BookOpen className="h-4 w-4 text-blue-600" />
+              <h3 className="font-medium text-gray-900 dark:text-white">DSM-5 Kriterleri</h3>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 h-64 overflow-y-auto">
+              <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
+                {criteriaArea}
+              </div>
             </div>
           </div>
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col">
-            <h3 className="text-md font-semibold mb-2 flex items-center"><PanelLeft className="h-4 w-4 mr-2 text-green-500"/> Seans Geneli Notlar</h3>
+
+          {/* Soru Notu */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-2 mb-2">
+              <StickyNote className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Soru Notu</span>
+            </div>
+            {questionNoteArea}
+          </div>
+
+          {/* Seans Notları */}
+          <div className="flex-1 p-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <FileText className="h-4 w-4 text-green-600" />
+              <h3 className="font-medium text-gray-900 dark:text-white">Seans Notları</h3>
+            </div>
             <textarea
               value={sessionNote}
               onChange={(e) => onSessionNoteChange(e.target.value)}
-              placeholder="Seans boyunca görünür kalacak notlarınızı buraya yazın..."
-              className="flex-grow w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600 resize-none"
+              placeholder="Seans notlarınızı buraya yazın..."
+              className="w-full h-32 p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 resize-none text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
-      </main>
-
-       {/* Alt Kontrol Alanı */}
-      <footer className="flex-shrink-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 flex justify-end items-center gap-3">
-        <button className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">Önceki Soru</button>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Sonraki Soru</button>
-        <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Görüşmeyi Bitir</button>
-      </footer>
+      </div>
     </div>
   );
 };
