@@ -126,3 +126,9 @@ CREATE POLICY "Users can manage answers for their own sessions" ON public.scid_a
 -- YENİ TABLOLAR İÇİN GENEL İZİNLER
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.scid_sessions TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.scid_answers TO authenticated;
+
+
+
+
+ALTER TABLE public.scid_sessions
+ADD COLUMN trauma_events JSONB;
