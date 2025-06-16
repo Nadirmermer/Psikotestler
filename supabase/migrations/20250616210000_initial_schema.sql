@@ -77,7 +77,7 @@ CREATE POLICY "Users can manage their own session notes" ON public.session_notes
 GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT USAGE ON SCHEMA public TO anon;
 
--- 'anon' (ziyaretçi/giriş yapmamış) rolüne, GİRİŞ/KAYIT işlemleri için izinler
+-- 'anon' (ziyaretçi/giriş yapmamış) rolüne, GİRİŞ/KAYIT işlemleri için izinlerr
 GRANT INSERT ON TABLE public.profiles TO anon;
 
 -- 'authenticated' (giriş yapmış kullanıcı) rolüne, tüm işlemler için izinler
