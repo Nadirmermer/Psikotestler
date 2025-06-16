@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Sun, Moon, X, AlertTriangle } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, LogOut, Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   AlertDialog,
@@ -10,15 +11,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ScidTestHeaderProps {
   title: string;
   subtitle?: React.ReactNode;
   onBack?: () => void;
   onExit?: () => void;
-  showBackButton?: boolean;
-  showExitButton?: boolean;
   backButtonText?: string;
 }
 
@@ -27,117 +27,97 @@ export const ScidTestHeader: React.FC<ScidTestHeaderProps> = ({
   subtitle,
   onBack,
   onExit,
-  showBackButton = true,
-  showExitButton = true,
   backButtonText = "Geri"
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const [showExitDialog, setShowExitDialog] = useState(false);
-
-  const handleExitClick = () => {
-    if (onExit) {
-      setShowExitDialog(true);
-    }
-  };
-
-  const handleConfirmExit = () => {
-    setShowExitDialog(false);
-    if (onExit) {
-      onExit();
-    }
-  };
 
   return (
-    <>
-      <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+    <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          
+          {/* Sol Taraf - Geri Butonu ve Başlık */}
+          <div className="flex items-center space-x-4">
+            {onBack && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBack}
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl px-4 py-2 transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="font-medium">{backButtonText}</span>
+              </Button>
+            )}
             
-            {/* Sol Taraf - Geri Butonu */}
-            <div className="flex items-center space-x-4">
-              {showBackButton && onBack && (
-                <button
-                  onClick={onBack}
-                  className="group flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200"
-                >
-                  <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
-                  <span className="font-medium">{backButtonText}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Orta - Başlık */}
-            <div className="flex-1 text-center">
+            <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 {title}
               </h1>
               {subtitle && (
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {subtitle}
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Sağ Taraf - Tema ve Çıkış Butonları */}
-            <div className="flex items-center space-x-2">
-              
-              {/* Tema Değiştirme Butonu */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200 group"
-                title={theme === 'light' ? 'Karanlık Tema' : 'Aydınlık Tema'}
-              >
-                {theme === 'light' ? (
-                  <Moon className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                ) : (
-                  <Sun className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                )}
-              </button>
-
-              {/* Çıkış Butonu */}
-              {showExitButton && (
-                <button
-                  onClick={handleExitClick}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group"
-                  title="Testi Sonlandır"
-                >
-                  <X className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-                </button>
+          {/* Sağ Taraf - Tema ve Çıkış Butonları */}
+          <div className="flex items-center space-x-3">
+            
+            {/* Tema Değiştirme Butonu */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="w-10 h-10 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5 text-yellow-500" />
+              ) : (
+                <Moon className="h-5 w-5 text-gray-600" />
               )}
-            </div>
+            </Button>
+
+            {/* Çıkış Butonu */}
+            {onExit && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl px-4 py-2 transition-all duration-200"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="font-medium">Çıkış</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-gray-900 dark:text-white">
+                      Testten Çıkmak İstediğinizden Emin misiniz?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                      Kaydedilmemiş verileriniz kaybolabilir. Bu işlemi geri alamazsınız.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 border-0 rounded-xl">
+                      İptal
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={onExit}
+                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 rounded-xl"
+                    >
+                      Evet, Çık
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
-      </header>
-
-      {/* Çıkış Onay Dialog'u */}
-      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <AlertDialogContent className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-gray-700/50">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-bold text-gray-800 dark:text-white flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-white" />
-              </div>
-              <span>Testi Sonlandır</span>
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 dark:text-gray-300 mt-4">
-              Test oturumunu sonlandırmak istediğinizden emin misiniz? 
-              <br />
-              <strong>Kaydedilmemiş veriler kaybolabilir.</strong>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="space-x-4 mt-6">
-            <AlertDialogCancel className="bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 hover:from-gray-300 hover:to-gray-400 dark:hover:from-gray-500 dark:hover:to-gray-600 text-gray-700 dark:text-gray-200 border-0 rounded-2xl px-6 py-3">
-              İptal
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmExit}
-              className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white border-0 rounded-2xl px-6 py-3 shadow-lg hover:shadow-xl"
-            >
-              Testi Sonlandır
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      </div>
+    </div>
   );
 }; 

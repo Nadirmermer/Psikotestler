@@ -21,12 +21,30 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
   onExit 
 }) => {
   const [notes, setNotes] = useState<{ [key: string]: string }>({});
+  const [answers, setAnswers] = useState<{ [key: string]: any }>({});
 
   const handleNoteChange = (id: string, value: string) => {
     setNotes(prev => ({ ...prev, [id]: value }));
   };
 
-  // Soruları bölümlerine göre gruplayalım
+  const handleAnswerChange = (id: string, value: any) => {
+    setAnswers(prev => ({ ...prev, [id]: value }));
+  };
+
+  // Sorunun gösterilip gösterilmeyeceğini kontrol eden fonksiyon
+  const shouldShowQuestion = (question: any) => {
+    if (!question.skipLogic) return true;
+    
+    for (const [dependentQuestionId, expectedValue] of Object.entries(question.skipLogic)) {
+      const actualValue = answers[dependentQuestionId];
+      if (actualValue !== expectedValue) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Soruları bölümlerine göre gruplayalım ve koşullu soruları filtreleyelim
   const sections = [...new Set(genelDegerlendirme_data.map(q => q.section))];
 
   return (
@@ -80,7 +98,10 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
 
                 {/* Sorular */}
                 <div className="space-y-6">
-                  {genelDegerlendirme_data.filter(q => q.section === section).map(q => (
+                  {genelDegerlendirme_data
+                    .filter(q => q.section === section)
+                    .filter(shouldShowQuestion)
+                    .map(q => (
                     <div key={q.id} className="space-y-3">
                       
                       {/* Soru Etiketi */}
@@ -97,6 +118,45 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
                             <Sparkles className="h-4 w-4" />
                             <span>Bu bir yönlendirme notudur, girdi alanı yoktur.</span>
                           </p>
+                        </div>
+                      ) : q.type === 'question' ? (
+                        <div className="space-y-3">
+                          {/* Seçenekler */}
+                          <div className="grid grid-cols-1 gap-3">
+                            {q.options?.map((option) => (
+                              <button
+                                key={option.value}
+                                onClick={() => handleAnswerChange(q.id, option.value)}
+                                className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                                  answers[q.id] === option.value
+                                    ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-300'
+                                    : 'bg-white/70 dark:bg-gray-700/70 border-gray-300/50 dark:border-gray-600/50 hover:border-blue-300 dark:hover:border-blue-600'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <div className={`w-4 h-4 rounded-full border-2 ${
+                                    answers[q.id] === option.value
+                                      ? 'bg-blue-500 border-blue-500'
+                                      : 'border-gray-300 dark:border-gray-600'
+                                  }`}>
+                                    {answers[q.id] === option.value && (
+                                      <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                                    )}
+                                  </div>
+                                  <span className="font-medium">{option.label}</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Not alanı */}
+                          <Textarea
+                            value={notes[q.id] || ''}
+                            onChange={(e) => handleNoteChange(q.id, e.target.value)}
+                            rows={2}
+                            className="bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-gray-300/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 resize-none"
+                            placeholder="Bu soruyla ilgili notlarınızı buraya yazın..."
+                          />
                         </div>
                       ) : q.type === 'text' ? (
                         <Input
