@@ -17,6 +17,7 @@ import { moduleE_data } from '@/features/scid/data/module-e.data';
 import { SubstanceQuestionnaire } from '@/features/scid/components/SubstanceQuestionnaire';
 import { TraumaEventInput } from '@/features/scid/components/TraumaEventInput';
 import { TraumaSelector } from '@/features/scid/components/TraumaSelector';
+import { SessionReport } from '@/features/scid/components/SessionReport';
 
 type TestPhase = 'general_assessment' | 'module_selection' | 'questioning' | 'completed';
 type AnswerPayload = { [key: string]: { answer: any; note: string } };
@@ -59,6 +60,10 @@ export const Scid5CvPage: React.FC = () => {
   // ÖSGB için yeni state'ler
   const [traumaEvents, setTraumaEvents] = useState<{ [key: string]: TraumaEvent }>({});
   const [selectedTraumaForPtsd, setSelectedTraumaForPtsd] = useState<string | null>(null);
+
+  const [clientInfo, setClientInfo] = useState<{ id: string, fullName: string } | null>(null);
+  const [sessionDate, setSessionDate] = useState<string>(new Date().toISOString());
+  const [loading, setLoading] = useState(true);
 
   const handleProceedToModules = async (assessmentNotes: { [key: string]: string }) => {
     // Bu fonksiyon bir önceki adımdaki gibi notları alıp Supabase'e kaydediyor.
@@ -138,9 +143,15 @@ export const Scid5CvPage: React.FC = () => {
     return baseQuestion;
   }, [currentQuestionIndex, questionsToAsk, selectedSubstances, currentSubstanceIndex]);
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback((calculatedResult?: string) => {
     const question = questionsToAsk[currentQuestionIndex];
-  
+    
+    // Eğer mevcut soru SCID'in sonu ise, fazı 'completed' yap
+    if (question?.id === 'SCID_END' || currentQuestionIndex >= questionsToAsk.length - 1) {
+      setPhase('completed');
+      return;
+    }
+
     // Madde anketi döngüsü içindeysek...
     if (question?.id.includes('_GENERIC')) {
       const nextSubstanceQuestionIndex = substanceQuestionnaireIndex + 1;
@@ -161,12 +172,90 @@ export const Scid5CvPage: React.FC = () => {
         }
       } else {
         // Aynı madde için sonraki soruya geç
-        setSubstanceQuestionnaireIndex(nextSubstanceQuestionIndex);
+        setSubstanceQuestionIndex(nextSubstanceQuestionIndex);
       }
     } else {
       // Normal ilerleme mantığı
-      // ... (önceki handleNext kodunuz) ...
       setCurrentQuestionIndex(prev => prev + 1);
+    }
+
+    // Otomatik hesaplama
+    if (question?.type === 'calculation' && question.calculation) {
+      setIsCalculating(true);
+      
+      const { sources, condition } = question.calculation;
+      let calculatedValue: 'EVET' | 'HAYIR' | string = 'HAYIR'; // Sonuç artık string de olabilir
+
+      if (condition === 'any_positive') {
+        const isAnyPositive = sources.some(sourceId => answers[sourceId]?.answer === '+');
+        if (isAnyPositive) calculatedValue = 'EVET';
+      }
+      
+      else if (condition === 'count_positive') {
+        const threshold = question.calculation.threshold || 0;
+        let count = 0;
+        sources.forEach(sourceId => {
+          if (answers[sourceId]?.answer === '+') count++;
+        });
+        if (count >= threshold) calculatedValue = 'EVET';
+      }
+      
+      else if (condition === 'count_positive_mania') {
+        const contextId = question.calculation.contextSourceId;
+        const moodAnswer = contextId ? answers[contextId]?.answer : null;
+        
+        // Eğer duygudurum "sadece sinirli" ise eşik 4, diğer durumlarda 3'tür.
+        const threshold = (moodAnswer === 'irritable') ? 4 : 3;
+
+        let count = 0;
+        sources.forEach(sourceId => {
+          if (answers[sourceId]?.answer === '+') count++;
+        });
+
+        if (count >= threshold) calculatedValue = 'EVET';
+      }
+
+      else if (condition === 'schizophrenia_A') {
+        const coreSymptoms = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20'];
+        const allSymptoms = sources;
+
+        const positiveSymptoms = allSymptoms.filter(id => answers[id]?.answer === '+');
+        const hasCoreSymptom = positiveSymptoms.some(id => coreSymptoms.includes(id));
+        
+        if (positiveSymptoms.length >= 2 && hasCoreSymptom) {
+          calculatedValue = 'EVET';
+        }
+      }
+      
+      else if (condition === 'bipolar_II_check') {
+        const hipoManiSources = ['A53', 'A77'];
+        const depSources = ['A12', 'A26'];
+
+        const hasHipomania = hipoManiSources.some(id => answers[id]?.answer === '+');
+        const hasDepression = depSources.some(id => answers[id]?.answer === '+');
+
+        if (hasHipomania && hasDepression) {
+          calculatedValue = 'EVET';
+        }
+      }
+      
+      // YENİ CİDDİYET HESAPLAMA KOŞULU
+      else if (condition === 'count_positive_severity') {
+        const count = sources.reduce((acc, sourceId) => {
+          return answers[sourceId]?.answer === '+' ? acc + 1 : acc;
+        }, 0);
+
+        if (count >= 6) calculatedValue = 'Ağır';
+        else if (count >= 4) calculatedValue = 'Orta';
+        else if (count >= 2) calculatedValue = 'Ağır Olmayan';
+        else calculatedValue = 'Tanı Yok';
+      }
+      
+      setTimeout(() => {
+        setIsCalculating(false);
+        // handleNext artık string sonuçları da işleyebilmeli
+        handleNext(calculatedValue as any); 
+      }, 2000);
     }
   }, [currentQuestionIndex, questionsToAsk, selectedSubstances, currentSubstanceIndex, substanceQuestionnaireIndex]);
 
@@ -293,6 +382,36 @@ export const Scid5CvPage: React.FC = () => {
     }
   }, [currentQuestion, answers, handleNext]);
 
+  // Sayfa yüklendiğinde danışan ve seans bilgilerini çek
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      if (!clientId || !sessionId) return;
+      setLoading(true);
+      
+      const clientPromise = supabase.from('clients').select('id, full_name').eq('id', clientId).single();
+      const sessionPromise = supabase.from('scid_sessions').select('created_at, session_wide_note').eq('id', sessionId).single();
+
+      const [clientResult, sessionResult] = await Promise.all([clientPromise, sessionPromise]);
+
+      if (clientResult.error || !clientResult.data) {
+        toast.error("Danışan bilgileri yüklenemedi.");
+        navigate('/clients');
+      } else {
+        setClientInfo({ id: clientResult.data.id, fullName: clientResult.data.full_name });
+      }
+
+      if (sessionResult.data) {
+        setSessionDate(sessionResult.data.created_at);
+        setSessionNote(sessionResult.data.session_wide_note || '');
+      }
+
+      // TODO: Mevcut cevapları da yükle
+
+      setLoading(false);
+    };
+    fetchInitialData();
+  }, [clientId, sessionId, navigate]);
+
   // --- ANA RENDER FONKSİYONU ---
 
   const renderQuestion = (question: ScidQuestion) => {
@@ -315,6 +434,20 @@ export const Scid5CvPage: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (loading) return <div>Yükleniyor...</div>;
+    
+    if (phase === 'completed') {
+      return (
+        <SessionReport
+          answers={answers}
+          allQuestions={questionsToAsk}
+          sessionNote={sessionNote}
+          clientName={clientInfo?.fullName || 'Bilinmiyor'}
+          sessionDate={sessionDate}
+        />
+      );
+    }
+
     if (phase === 'questioning') {
         if (!currentQuestion) return <div>Test tamamlandı veya bir hata oluştu.</div>;
 
