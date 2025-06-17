@@ -1,10 +1,12 @@
 // src/features/scid/components/ScidTestLayout.tsx
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScidTestHeader } from './ScidTestHeader';
+import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 import { 
   FileText, 
   BookOpen, 
@@ -25,6 +27,11 @@ interface ScidTestLayoutProps {
   currentModule?: string;
   onBack?: () => void;
   onExit?: () => void;
+  sessionId?: string;
+  currentQuestionId?: string;
+  currentAnswer?: any;
+  currentQuestionNote?: string;
+  onQuestionNoteChange?: (note: string) => void;
 }
 
 export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
@@ -39,9 +46,76 @@ export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
   clientName = "Danışan",
   currentModule = "Genel",
   onBack,
-  onExit
+  onExit,
+  sessionId,
+  currentQuestionId,
+  currentAnswer,
+  currentQuestionNote = '',
+  onQuestionNoteChange
 }) => {
   const progressPercentage = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
+
+  // Seans notunu kaydetme fonksiyonu
+  const saveSessionNote = useCallback(async (note: string) => {
+    if (!sessionId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scid_sessions')
+        .update({ session_note: note })
+        .eq('id', sessionId);
+      
+      if (error) {
+        console.error('Seans notu kaydetme hatası:', error);
+      }
+    } catch (err) {
+      console.error('Seans notu kaydetme hatası:', err);
+    }
+  }, [sessionId]);
+
+  // Soru notunu kaydetme fonksiyonu
+  const saveQuestionNote = useCallback(async (questionId: string, note: string) => {
+    if (!sessionId || !questionId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scid_answers')
+        .upsert({
+          session_id: sessionId,
+          question_code: questionId,
+          answer: currentAnswer?.toString() || null,
+          question_specific_note: note || null
+        }, {
+          onConflict: 'session_id,question_code'
+        });
+      
+      if (error) {
+        console.error('Soru notu kaydetme hatası:', error);
+      }
+    } catch (err) {
+      console.error('Soru notu kaydetme hatası:', err);
+    }
+  }, [sessionId, currentAnswer]);
+
+  // Seans notu değişikliği
+  const handleSessionNoteChange = useCallback((note: string) => {
+    onSessionNoteChange(note);
+    // Otomatik kaydetme
+    if (sessionId) {
+      saveSessionNote(note);
+    }
+  }, [onSessionNoteChange, sessionId, saveSessionNote]);
+
+  // Soru notu değişikliği
+  const handleQuestionNoteChange = useCallback((note: string) => {
+    if (onQuestionNoteChange) {
+      onQuestionNoteChange(note);
+    }
+    // Otomatik kaydetme
+    if (sessionId && currentQuestionId) {
+      saveQuestionNote(currentQuestionId, note);
+    }
+  }, [onQuestionNoteChange, sessionId, currentQuestionId, saveQuestionNote]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-gray-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -122,7 +196,14 @@ export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Soru Notu</h3>
                 </div>
                 <div className="space-y-4">
-                  {questionNoteArea}
+                  {questionNoteArea || (
+                    <Textarea
+                      placeholder="Bu soruyla ilgili notlarınızı buraya yazın..."
+                      value={currentQuestionNote}
+                      onChange={(e) => handleQuestionNoteChange(e.target.value)}
+                      className="min-h-[80px] bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-900/20 dark:to-orange-900/10 border-amber-200/50 dark:border-amber-700/50 rounded-2xl resize-none focus:ring-2 focus:ring-amber-500/50 dark:focus:ring-amber-400/50 transition-all duration-300"
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -140,7 +221,7 @@ export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
                   <Textarea
                     placeholder="Seans geneli notlarınızı buraya yazın..."
                     value={sessionNote}
-                    onChange={(e) => onSessionNoteChange(e.target.value)}
+                    onChange={(e) => handleSessionNoteChange(e.target.value)}
                     className="min-h-[120px] bg-gradient-to-br from-emerald-50/50 to-green-50/30 dark:from-emerald-900/20 dark:to-green-900/10 border-emerald-200/50 dark:border-emerald-700/50 rounded-2xl resize-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-emerald-400/50 transition-all duration-300"
                   />
                 </div>

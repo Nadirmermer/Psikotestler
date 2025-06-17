@@ -1,35 +1,151 @@
 // src/features/scid/components/GeneralAssessment.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { genelDegerlendirme_data } from '../data/genel-degerlendirme.data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScidTestHeader } from './ScidTestHeader';
 import ReactMarkdown from 'react-markdown';
-import { ChevronRight, FileText, Sparkles } from 'lucide-react';
+import { ChevronRight, FileText, Sparkles, Save } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 interface GeneralAssessmentProps {
   onProceed: () => void;
   onBack?: () => void;
   onExit?: () => void;
+  sessionId?: string;
+  initialAnswers?: { [key: string]: any };
+  initialNotes?: { [key: string]: string };
 }
 
 export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({ 
   onProceed, 
   onBack, 
-  onExit 
+  onExit,
+  sessionId,
+  initialAnswers = {},
+  initialNotes = {}
 }) => {
-  const [notes, setNotes] = useState<{ [key: string]: string }>({});
-  const [answers, setAnswers] = useState<{ [key: string]: any }>({});
+  const [notes, setNotes] = useState<{ [key: string]: string }>(initialNotes);
+  const [answers, setAnswers] = useState<{ [key: string]: any }>(initialAnswers);
 
-  const handleNoteChange = (id: string, value: string) => {
+  const handleNoteChange = useCallback((id: string, value: string) => {
     setNotes(prev => ({ ...prev, [id]: value }));
-  };
+    // Otomatik kaydetme
+    if (sessionId) {
+      saveNote(id, value);
+    }
+  }, [sessionId]);
 
-  const handleAnswerChange = (id: string, value: any) => {
+  const handleAnswerChange = useCallback((id: string, value: any) => {
     setAnswers(prev => ({ ...prev, [id]: value }));
-  };
+    // Otomatik kaydetme
+    if (sessionId) {
+      saveAnswer(id, value);
+    }
+  }, [sessionId]);
+
+  // Veritabanına kaydetme fonksiyonları
+  const saveAnswer = useCallback(async (questionId: string, answer: any) => {
+    if (!sessionId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scid_answers')
+        .upsert({
+          session_id: sessionId,
+          question_code: questionId,
+          answer: answer?.toString(),
+          question_specific_note: notes[questionId] || null
+        }, {
+          onConflict: 'session_id,question_code'
+        });
+      
+      if (error) {
+        console.error('Cevap kaydetme hatası:', error);
+        toast.error('Cevap kaydedilemedi');
+      }
+    } catch (err) {
+      console.error('Kaydetme hatası:', err);
+    }
+  }, [sessionId, notes]);
+
+  const saveNote = useCallback(async (questionId: string, note: string) => {
+    if (!sessionId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scid_answers')
+        .upsert({
+          session_id: sessionId,
+          question_code: questionId,
+          answer: answers[questionId]?.toString() || null,
+          question_specific_note: note || null
+        }, {
+          onConflict: 'session_id,question_code'
+        });
+      
+      if (error) {
+        console.error('Not kaydetme hatası:', error);
+      }
+    } catch (err) {
+      console.error('Not kaydetme hatası:', err);
+    }
+  }, [sessionId, answers]);
+
+  // Manuel kaydetme fonksiyonu
+  const saveAllData = useCallback(async () => {
+    if (!sessionId) {
+      toast.error('Oturum ID bulunamadı');
+      return;
+    }
+
+    try {
+      const savePromises = [];
+      
+      // Tüm cevapları ve notları kaydet
+      for (const [questionId, answer] of Object.entries(answers)) {
+        savePromises.push(
+          supabase
+            .from('scid_answers')
+            .upsert({
+              session_id: sessionId,
+              question_code: questionId,
+              answer: answer?.toString(),
+              question_specific_note: notes[questionId] || null
+            }, {
+              onConflict: 'session_id,question_code'
+            })
+        );
+      }
+
+      // Sadece not olan soruları da kaydet
+      for (const [questionId, note] of Object.entries(notes)) {
+        if (!answers[questionId] && note) {
+          savePromises.push(
+            supabase
+              .from('scid_answers')
+              .upsert({
+                session_id: sessionId,
+                question_code: questionId,
+                answer: null,
+                question_specific_note: note
+              }, {
+                onConflict: 'session_id,question_code'
+              })
+          );
+        }
+      }
+
+      await Promise.all(savePromises);
+      toast.success('Tüm veriler kaydedildi');
+    } catch (err) {
+      console.error('Toplu kaydetme hatası:', err);
+      toast.error('Veriler kaydedilemedi');
+    }
+  }, [sessionId, answers, notes]);
 
   // Sorunun gösterilip gösterilmeyeceğini kontrol eden fonksiyon
   const shouldShowQuestion = (question: any) => {
@@ -92,8 +208,8 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
                     {sectionIndex + 1}
                   </div>
                   <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                    {section}
-                  </h2>
+                  {section}
+                </h2>
                 </div>
 
                 {/* Sorular */}
@@ -107,7 +223,7 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
                       {/* Soru Etiketi */}
                       <label htmlFor={q.id} className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                         <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <ReactMarkdown components={{ p: 'span' }}>{q.text}</ReactMarkdown>
+                        <ReactMarkdown components={{ p: 'span' }}>{q.text}</ReactMarkdown>
                         </div>
                       </label>
                       
@@ -183,8 +299,23 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
             ))}
           </div>
 
-          {/* Alt Buton */}
-          <div className="mt-12 flex justify-center">
+          {/* Alt Butonlar */}
+          <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
+            
+            {/* Manuel Kaydetme Butonu */}
+            {sessionId && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={saveAllData}
+                className="group relative px-8 py-3 bg-white/70 dark:bg-gray-700/70 border-2 border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-2xl transition-all duration-300 flex items-center space-x-3 font-semibold shadow-lg hover:shadow-xl"
+              >
+                <Save className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                <span>Tüm Verileri Kaydet</span>
+              </Button>
+            )}
+
+            {/* İleri Butonu */}
             <Button
               size="lg"
               onClick={onProceed}

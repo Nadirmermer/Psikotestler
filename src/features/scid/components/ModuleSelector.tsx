@@ -1,23 +1,55 @@
 // src/features/scid/components/ModuleSelector.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { scid5cv_modules } from '@/features/scid/data/scid.modules';
 import { Check, Play, CheckSquare, Square, Sparkles, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScidTestHeader } from './ScidTestHeader';
+import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 interface ModuleSelectorProps {
   onStart: (selectedModules: string[]) => void;
   onBack?: () => void;
   onExit?: () => void;
+  sessionId?: string;
+  initialSelectedModules?: string[];
 }
 
 export const ModuleSelector: React.FC<ModuleSelectorProps> = ({ 
   onStart, 
   onBack, 
-  onExit 
+  onExit,
+  sessionId,
+  initialSelectedModules = []
 }) => {
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(initialSelectedModules);
+
+  // Seçilen modülleri kaydet
+  useEffect(() => {
+    if (sessionId && selected.length > 0) {
+      saveSelectedModules();
+    }
+  }, [selected, sessionId]);
+
+  const saveSelectedModules = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scid_sessions')
+        .update({
+          selected_modules: JSON.stringify(selected)
+        })
+        .eq('id', sessionId);
+
+      if (error) {
+        console.error('Modül seçimi kaydedilemedi:', error);
+      }
+    } catch (error) {
+      console.error('Modül seçimi kaydedilemedi:', error);
+    }
+  };
 
   const toggleModule = (moduleId: string) => {
     setSelected(prev =>

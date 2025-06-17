@@ -10,7 +10,8 @@ import { HomePage } from "./pages/HomePage";
 import { ClientsPage } from "./pages/ClientsPage";
 import { ClientDetailPage } from "./pages/ClientDetailPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { Scid5CvPage } from "./pages/Scid5CvPage"; 
+import { Scid5CvPage } from "./pages/Scid5CvPage";
+import { TestReportPage } from "./pages/TestReportPage"; 
 
 const App = () => (
   <ThemeProvider>
@@ -21,10 +22,20 @@ const App = () => (
         
         {/* Test sayfasının AppLayout dışında, tam ekran olması için ayrı bir rotaya koyuyoruz */}
         <Route 
-          path="/clients/:id/scid/cv/:sessionId"
+          path="/clients/:clientId/scid/cv/:sessionId"
           element={
             <ProtectedRoute>
               <Scid5CvPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Test raporu sayfası */}
+        <Route 
+          path="/clients/:clientId/scid/cv/:sessionId/report"
+          element={
+            <ProtectedRoute>
+              <TestReportPage />
             </ProtectedRoute>
           }
         />

@@ -31,7 +31,7 @@ const substanceQuestionnaireTemplate = scid5cv_data.filter(q => q.type === 'subs
 
 export const Scid5CvPage: React.FC = () => {
     // ... (tüm state tanımlamaları aynı kalacak) ...
-  const { id: clientId, sessionId } = useParams<{ id: string; sessionId: string }>();
+  const { clientId, sessionId } = useParams<{ clientId: string; sessionId: string }>();
   const navigate = useNavigate();
   const noteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [phase, setPhase] = useState<TestPhase>('general_assessment');
@@ -49,6 +49,7 @@ export const Scid5CvPage: React.FC = () => {
   const [sessionDate, setSessionDate] = useState<string>(new Date().toISOString());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<any>(null);
   const [debouncedSessionNote] = useDebounce(sessionNote, 1000);
 
   // Navigation handlers
@@ -105,6 +106,7 @@ export const Scid5CvPage: React.FC = () => {
           console.log('Veri yüklendi:', { client, session });
           
           setClientInfo({ id: client.id, fullName: client.full_name });
+          setSessionData(session);
           setSessionNote(session.session_wide_note || '');
           setSessionDate(session.updated_at);
           
@@ -162,7 +164,7 @@ export const Scid5CvPage: React.FC = () => {
     }, [sessionId]);
 
     const saveTraumaEventsToDb = useCallback(async (events: { [key: string]: TraumaEvent }) => {
-      if (!sessionId) return;
+        if (!sessionId) return;
       
       try {
         const { error } = await supabase
@@ -247,19 +249,19 @@ export const Scid5CvPage: React.FC = () => {
     }, []);
 
     const handleNext = useCallback((calculatedResult?: string) => {
-      const question = questionsToAsk[currentQuestionIndex];
-      if (!question) {
-        setPhase('completed');
-        return;
-      }
+        const question = questionsToAsk[currentQuestionIndex];
+        if (!question) {
+            setPhase('completed');
+            return;
+        }
 
       // Son soru mu kontrol et
       if (currentQuestionIndex >= questionsToAsk.length - 1) {
-        setPhase('completed');
-        return;
-      }
+            setPhase('completed');
+            return;
+        }
 
-      let skipTargetId: string | null = null;
+        let skipTargetId: string | null = null;
 
       // Skip logic kontrolü
       if (question.skipLogic && Array.isArray(question.skipLogic)) {
@@ -274,7 +276,7 @@ export const Scid5CvPage: React.FC = () => {
       }
 
       // Hedef soruya atla veya bir sonraki soruya geç
-      if (skipTargetId) {
+        if (skipTargetId) {
         const targetIndex = findQuestionIndexById(skipTargetId);
         if (targetIndex !== -1) {
           setCurrentQuestionIndex(targetIndex);
@@ -283,7 +285,7 @@ export const Scid5CvPage: React.FC = () => {
         }
       } else {
         setCurrentQuestionIndex(prev => prev + 1);
-      }
+        }
     }, [questionsToAsk, currentQuestionIndex, answers, findQuestionIndexById]);
 
     const handleAnswer = useCallback((questionId: string, answer: any) => {
@@ -293,7 +295,7 @@ export const Scid5CvPage: React.FC = () => {
       };
       setAnswers(newAnswers);
       saveAnswer(questionId, { answer });
-      
+
       // Seçenekli sorularda otomatik olarak sonraki soruya geç
       const currentQuestion = questionsToAsk.find(q => q.id === questionId);
       if (currentQuestion?.options && currentQuestion.options.length > 0) {
@@ -404,21 +406,44 @@ export const Scid5CvPage: React.FC = () => {
       }
 
       if (phase === 'general_assessment') {
+        // Genel değerlendirme sorularının cevaplarını ve notlarını ayır
+        const generalAnswers: { [key: string]: any } = {};
+        const generalNotes: { [key: string]: string } = {};
+        
+        Object.entries(answers).forEach(([questionId, data]) => {
+          if (questionId.startsWith('gen_')) {
+            generalAnswers[questionId] = data.answer;
+            if (data.note) {
+              generalNotes[questionId] = data.note;
+            }
+          }
+        });
+
         return (
           <GeneralAssessment 
             onProceed={handleProceedToModules}
             onBack={handleBackToClientDetail}
             onExit={handleExitTest}
+            sessionId={sessionId}
+            initialAnswers={generalAnswers}
+            initialNotes={generalNotes}
           />
         );
       }
 
       if (phase === 'module_selection') {
+        // Seçilen modülleri session'dan al
+        const selectedModules = sessionData?.selected_modules 
+          ? JSON.parse(sessionData.selected_modules) 
+          : [];
+
         return (
           <ModuleSelector 
             onStart={handleStartQuestioning}
             onBack={handleBackToGeneralAssessment}
             onExit={handleExitTest}
+            sessionId={sessionId}
+            initialSelectedModules={selectedModules}
           />
         );
       }
@@ -437,8 +462,8 @@ export const Scid5CvPage: React.FC = () => {
         );
       }
 
-      if (phase === 'questioning') {
-        const question = questionsToAsk[currentQuestionIndex];
+        if (phase === 'questioning') {
+            const question = questionsToAsk[currentQuestionIndex];
         
         if (!question) {
           return (
@@ -464,47 +489,47 @@ export const Scid5CvPage: React.FC = () => {
         }
 
         // Özel soru tipleri
-        switch (question.type) {
-          case 'trauma_event_input':
+            switch (question.type) {
+                case 'trauma_event_input':
             return (
               <TraumaEventInput
-                questionText={question.text}
-                initialData={traumaEvents[question.id] || null}
-                onProceed={(data) => {
-                  const newEvents = { ...traumaEvents, [question.id]: data };
-                  setTraumaEvents(newEvents);
-                  saveTraumaEventsToDb(newEvents);
-                  handleNext();
-                }}
+                        questionText={question.text}
+                        initialData={traumaEvents[question.id] || null}
+                        onProceed={(data) => {
+                            const newEvents = { ...traumaEvents, [question.id]: data };
+                            setTraumaEvents(newEvents);
+                            saveTraumaEventsToDb(newEvents);
+                            handleNext();
+                        }}
               />
             );
-          
-          case 'instruction':
-            if (question.id === 'G13') {
-              const validEvents = Object.values(traumaEvents).filter(e => e && e.description);
+                
+                case 'instruction':
+                    if (question.id === 'G13') {
+                        const validEvents = Object.values(traumaEvents).filter(e => e && e.description);
               if (validEvents.length === 0) {
-                const nextModuleIndex = findQuestionIndexById('H1');
+                            const nextModuleIndex = findQuestionIndexById('H1');
                 if (nextModuleIndex !== -1) setCurrentQuestionIndex(nextModuleIndex);
-                return null;
-              }
+                            return null;
+                        }
               return (
                 <TraumaSelector
-                  traumaEvents={traumaEvents}
-                  onSelect={(eventId) => {
-                    setSelectedTraumaForPtsd(eventId);
-                    toast.success(`${eventId} ID'li olay seçildi.`);
-                    handleNext();
-                  }}
-                  onSkip={() => {
-                    const nextModuleIndex = findQuestionIndexById('H1');
+                            traumaEvents={traumaEvents}
+                            onSelect={(eventId) => {
+                                setSelectedTraumaForPtsd(eventId);
+                                toast.success(`${eventId} ID'li olay seçildi.`);
+                                handleNext();
+                            }}
+                            onSkip={() => {
+                                const nextModuleIndex = findQuestionIndexById('H1');
                     if (nextModuleIndex !== -1) setCurrentQuestionIndex(nextModuleIndex);
-                  }}
+                            }}
                 />
               );
-            }
+                    }
             break;
 
-          case 'substance_checklist':
+                case 'substance_checklist':
             if (question.substance_list) {
               return (
                 <SubstanceChecklist
@@ -518,16 +543,16 @@ export const Scid5CvPage: React.FC = () => {
                 />
               );
             }
-            break;
-          
-          case 'substance_questionnaire':
+                    break;
+                
+                case 'substance_questionnaire':
             // Madde sorgu mantığı burada implement edilir
-            break;
-        }
+                    break;
+            }
 
                  // Varsayılan ScidTestLayout
-         return (
-           <ScidTestLayout
+            return (
+                <ScidTestLayout
              questionArea={
                <QuestionRenderer
                  question={question}
@@ -559,9 +584,9 @@ export const Scid5CvPage: React.FC = () => {
              currentModule={question.module || 'Genel'}
              onBack={handleBackToModuleSelection}
              onExit={handleExitTest}
-           />
-         );
-      }
+                />
+            );
+        }
 
       return null;
     };

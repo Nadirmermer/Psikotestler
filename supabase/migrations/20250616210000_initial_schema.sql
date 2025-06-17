@@ -65,6 +65,7 @@ CREATE TABLE public.scid_sessions (
     status VARCHAR(50) NOT NULL DEFAULT 'in-progress', -- 'in-progress', 'completed', 'paused'
     current_module VARCHAR(10), -- 'genel', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
     current_question VARCHAR(20), -- 'A1', 'B5', 'H12' vb.
+    selected_modules JSONB, -- Seçilen modüllerin listesi
     trauma_events JSONB, -- Travma modülü için özel veri
     substance_list JSONB, -- Madde modülü için özel veri
     session_wide_note TEXT, -- Seans boyunca görünen genel not

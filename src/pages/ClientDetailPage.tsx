@@ -46,7 +46,12 @@ export const ClientDetailPage: React.FC = () => {
   const [editingNoteText, setEditingNoteText] = useState('');
   const [deletingNote, setDeletingNote] = useState<SessionNote | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [scidSessions, setScidSessions] = useState<any[]>([]);
   const [clientForm, setClientForm] = useState<Client | null>(null);
+
+  // URL parametrelerinden tab değerini al
+  const searchParams = new URLSearchParams(window.location.search);
+  const defaultTab = searchParams.get('tab') || 'notes';
 
   const fetchClientAndNotes = async () => {
     if (!user || !id) return;
@@ -54,8 +59,9 @@ export const ClientDetailPage: React.FC = () => {
 
     const clientPromise = supabase.from('clients').select('*').eq('id', id).single();
     const notesPromise = supabase.from('session_notes').select('*').eq('client_id', id).order('session_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
+    const scidPromise = supabase.from('scid_sessions').select('*').eq('client_id', id).order('created_at', { ascending: false });
     
-    const [clientResult, notesResult] = await Promise.all([clientPromise, notesPromise]);
+    const [clientResult, notesResult, scidResult] = await Promise.all([clientPromise, notesPromise, scidPromise]);
 
     if (clientResult.error) {
       toast.error('Danışan bilgileri yüklenirken hata oluştu');
@@ -69,6 +75,12 @@ export const ClientDetailPage: React.FC = () => {
       toast.error('Seans notları yüklenirken hata oluştu');
     } else {
       setNotes(notesResult.data);
+    }
+
+    if (scidResult.error) {
+      console.error('SCID seansları yüklenirken hata:', scidResult.error);
+    } else {
+      setScidSessions(scidResult.data || []);
     }
 
     setLoading(false);
@@ -150,6 +162,10 @@ export const ClientDetailPage: React.FC = () => {
     }
   };
 
+  const viewTestReport = async (sessionId: string) => {
+    navigate(`/clients/${id}/scid/cv/${sessionId}/report`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-gray-950 dark:via-slate-900 dark:to-blue-950/50 flex items-center justify-center">
@@ -194,7 +210,7 @@ export const ClientDetailPage: React.FC = () => {
           >
             <ArrowLeft className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
             <span className="font-medium">Danışan Listesine Geri Dön</span>
-          </Link>
+      </Link>
           
           <div className="flex items-center space-x-6">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl">
@@ -210,9 +226,9 @@ export const ClientDetailPage: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="notes" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 p-2">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-100/50 dark:bg-gray-700/50 rounded-2xl p-1">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-100/50 dark:bg-gray-700/50 rounded-2xl p-1">
               <TabsTrigger 
                 value="notes" 
                 className="flex items-center space-x-2 py-3 px-4 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-lg transition-all duration-300"
@@ -230,6 +246,14 @@ export const ClientDetailPage: React.FC = () => {
                 <span className="sm:hidden">Testler</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="test-history" 
+                className="flex items-center space-x-2 py-3 px-4 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-lg transition-all duration-300"
+              >
+                <Clock className="h-5 w-5" />
+                <span className="hidden sm:inline">Test Geçmişi</span>
+                <span className="sm:hidden">Geçmiş</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="info" 
                 className="flex items-center space-x-2 py-3 px-4 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-lg transition-all duration-300"
               >
@@ -237,7 +261,7 @@ export const ClientDetailPage: React.FC = () => {
                 <span className="hidden sm:inline">Bilgiler</span>
                 <span className="sm:hidden">Bilgi</span>
               </TabsTrigger>
-            </TabsList>
+        </TabsList>
           </div>
 
           <TabsContent value="notes" className="mt-8 space-y-8">
@@ -285,7 +309,7 @@ export const ClientDetailPage: React.FC = () => {
                   {notes.map(note => (
                     <div key={note.id} className="bg-gradient-to-br from-gray-50/50 to-white/30 dark:from-gray-700/50 dark:to-gray-800/30 rounded-2xl border border-gray-200/30 dark:border-gray-600/30 p-6 hover:shadow-xl transition-all duration-300">
                       {editingNote?.id === note.id ? (
-                        <div className="space-y-4">
+          <div className="space-y-4">
                           <textarea 
                             value={editingNoteText} 
                             onChange={(e) => setEditingNoteText(e.target.value)} 
@@ -306,10 +330,10 @@ export const ClientDetailPage: React.FC = () => {
                               <Save className="h-4 w-4" />
                               <span>{isSaving ? 'Güncelleniyor...' : 'Güncelle'}</span>
                             </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
+                     </div>
+                   </div>
+                ) : (
+                  <div>
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -361,7 +385,102 @@ export const ClientDetailPage: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="scid" className="mt-8">
+          {/* Test Geçmişi Tab */}
+          <TabsContent value="test-history" className="mt-8">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Test Geçmişi</h2>
+              </div>
+              
+              {scidSessions.length > 0 ? (
+                <div className="space-y-4">
+                  {scidSessions.map((session) => (
+                    <div key={session.id} className="bg-gradient-to-br from-gray-50/50 to-white/30 dark:from-gray-700/30 dark:to-gray-800/30 rounded-2xl p-6 border border-gray-200/30 dark:border-gray-600/30 shadow-lg backdrop-blur-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <BrainCircuit className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                              SCID-5-CV Görüşmesi
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {new Date(session.created_at).toLocaleDateString('tr-TR', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            session.status === 'completed' 
+                              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                              : session.status === 'in_progress'
+                              ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                              : 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300'
+                          }`}>
+                            {session.status === 'completed' ? 'Tamamlandı' : 
+                             session.status === 'in_progress' ? 'Devam Ediyor' : 'Başlatılmadı'}
+                          </span>
+                          <button
+                            onClick={() => viewTestReport(session.id)}
+                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                          >
+                            Raporu Görüntüle
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Test Özeti */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 dark:border-gray-600/50">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Seçilen Modüller</div>
+                          <div className="text-lg font-semibold text-gray-800 dark:text-white">
+                            {session.selected_modules ? JSON.parse(session.selected_modules).length : 0}
+                          </div>
+                        </div>
+                        <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 dark:border-gray-600/50">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Yanıtlanan Sorular</div>
+                          <div className="text-lg font-semibold text-gray-800 dark:text-white">
+                            {session.answer_count || 0}
+                          </div>
+                        </div>
+                        <div className="bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 dark:border-gray-600/50">
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Saptanan Tanılar</div>
+                          <div className="text-lg font-semibold text-gray-800 dark:text-white">
+                            {session.diagnosis_count || 0}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Clock className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                    Henüz Test Yapılmamış
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-500">
+                    Bu danışan için henüz SCID-5-CV testi yapılmamış.
+                  </p>
+                  </div>
+                )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="scid" className="mt-8 space-y-8">
+            {/* Yeni Test Başlatma */}
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -380,16 +499,16 @@ export const ClientDetailPage: React.FC = () => {
                       <h3 className="text-lg font-semibold text-gray-800 dark:text-white">SCID-5-CV</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-300">Klinik Versiyon</p>
                     </div>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+          </div>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
                     DSM-5 tanı kriterlerine dayalı yapılandırılmış klinik görüşme formu.
-                  </p>
-                  <button 
-                    onClick={startNewScidCvSession}
+            </p>
+               <button 
+                 onClick={startNewScidCvSession}
                     className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-6 rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                  >
+               >
                     Yeni Test Başlat
-                  </button>
+               </button>
                 </div>
                 
                 <div className="bg-gradient-to-br from-gray-50/50 to-gray-100/30 dark:from-gray-700/50 dark:to-gray-800/30 rounded-2xl p-6 border border-gray-200/30 dark:border-gray-600/30 opacity-50">
@@ -410,9 +529,99 @@ export const ClientDetailPage: React.FC = () => {
                     className="w-full bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 py-3 px-6 rounded-2xl font-medium cursor-not-allowed"
                   >
                     Yakında Gelecek
-                  </button>
-                </div>
+               </button>
+            </div>
               </div>
+            </div>
+
+            {/* Test Geçmişi */}
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  Test Geçmişi ({scidSessions.length})
+                </h2>
+              </div>
+              
+              {scidSessions.length > 0 ? (
+                <div className="space-y-4">
+                  {scidSessions.map(session => (
+                    <div key={session.id} className="bg-gradient-to-br from-gray-50/50 to-white/30 dark:from-gray-700/50 dark:to-gray-800/30 rounded-2xl border border-gray-200/30 dark:border-gray-600/30 p-6 hover:shadow-xl transition-all duration-300">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+                            session.status === 'completed' 
+                              ? 'bg-gradient-to-br from-emerald-500 to-green-600' 
+                              : session.status === 'in-progress'
+                              ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                              : 'bg-gradient-to-br from-amber-500 to-orange-600'
+                          }`}>
+                            <BrainCircuit className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                              SCID-5-CV Test
+                            </h3>
+                            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
+                              <span>
+                                {new Date(session.created_at).toLocaleDateString('tr-TR')}
+                              </span>
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                session.status === 'completed' 
+                                  ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' 
+                                  : session.status === 'in-progress'
+                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                  : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                              }`}>
+                                {session.status === 'completed' ? 'Tamamlandı' : 
+                                 session.status === 'in-progress' ? 'Devam Ediyor' : 'Duraklatıldı'}
+                              </span>
+                              {session.current_module && (
+                                <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                                  Modül: {session.current_module}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          {session.status !== 'completed' && (
+                            <button 
+                              onClick={() => navigate(`/clients/${id}/scid/cv/${session.id}`)}
+                              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
+                            >
+                              Devam Et
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => navigate(`/clients/${id}/scid/cv/${session.id}`)}
+                            className="px-4 py-2 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 hover:from-gray-300 hover:to-gray-400 dark:hover:from-gray-500 dark:hover:to-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-medium transition-all duration-300 text-sm"
+                          >
+                            Görüntüle
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {session.session_wide_note && (
+                        <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50">
+                          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium mb-1">Seans Notu:</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-300">{session.session_wide_note}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 rounded-3xl flex items-center justify-center mx-auto mb-6 opacity-50">
+                    <BrainCircuit className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Henüz test yok</h3>
+                  <p className="text-gray-600 dark:text-gray-300">İlk SCID-5-CV testini yukarıdaki butondan başlatabilirsiniz.</p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -475,24 +684,24 @@ export const ClientDetailPage: React.FC = () => {
                       <Save className="h-5 w-5" />
                       <span>{isSaving ? 'Güncelleniyor...' : 'Bilgileri Güncelle'}</span>
                     </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+                </div>
+              </form>
+             )}
+           </div>
+        </TabsContent>
+      </Tabs>
 
         {/* Delete Note Dialog */}
         <AlertDialog open={!!deletingNote} onOpenChange={() => setDeletingNote(null)}>
           <AlertDialogContent className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-gray-700/50">
-            <AlertDialogHeader>
+          <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
                 Notu Sil
               </AlertDialogTitle>
               <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
                 Bu seans notunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
               </AlertDialogDescription>
-            </AlertDialogHeader>
+          </AlertDialogHeader>
             <AlertDialogFooter className="space-x-4">
               <AlertDialogCancel className="bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 hover:from-gray-300 hover:to-gray-400 dark:hover:from-gray-500 dark:hover:to-gray-600 text-gray-700 dark:text-gray-200 border-0 rounded-2xl px-6 py-3">
                 İptal
@@ -503,10 +712,10 @@ export const ClientDetailPage: React.FC = () => {
               >
                 Sil
               </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
     </div>
   );
 };

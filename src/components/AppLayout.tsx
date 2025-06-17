@@ -22,7 +22,7 @@ export const AppLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [profile, setProfile] = useState<{ full_name: string | null }>({ full_name: null });
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
