@@ -28,9 +28,9 @@ CREATE TABLE public.clients (
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255),
-    phone VARCHAR(20),
+    phone VARCHAR(50),
     birth_date DATE,
-    gender VARCHAR(20),
+    gender VARCHAR(50),
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -64,7 +64,7 @@ CREATE TABLE public.scid_sessions (
     test_type VARCHAR(50) NOT NULL DEFAULT 'scid-5-cv',
     status VARCHAR(50) NOT NULL DEFAULT 'in-progress', -- 'in-progress', 'completed', 'paused'
     current_module VARCHAR(10), -- 'genel', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'
-    current_question VARCHAR(20), -- 'A1', 'B5', 'H12' vb.
+    current_question VARCHAR(100), -- 'A1', 'B5', 'H12' vb.
     selected_modules JSONB, -- Seçilen modüllerin listesi
     trauma_events JSONB, -- Travma modülü için özel veri
     substance_list JSONB, -- Madde modülü için özel veri
@@ -79,7 +79,7 @@ CREATE TABLE public.scid_sessions (
 CREATE TABLE public.scid_answers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID REFERENCES scid_sessions(id) ON DELETE CASCADE NOT NULL,
-    question_code VARCHAR(20) NOT NULL, -- 'A1', 'G14', 'F22', 'GENEL_1'
+    question_code VARCHAR(100) NOT NULL, -- 'A1', 'G14', 'F22', 'GENEL_1'
     answer TEXT, -- '+', '-', 'EVET', 'HAYIR', sayısal değer veya JSON
     question_specific_note TEXT, -- Her soru için özel not alanı
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -217,7 +217,7 @@ CHECK (gender IS NULL OR gender IN ('Erkek', 'Kadın', 'Diğer', 'Belirtmek iste
 -- SCHEMA BAŞARIYLA OLUŞTURULDU
 -- Bu dosya PsikoTest uygulaması için tüm gerekli tabloları,
 -- güvenlik politikalarını ve fonksiyonları içermektedir.
--- =============================================================================
+
 
 
 
