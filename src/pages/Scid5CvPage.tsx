@@ -252,6 +252,13 @@ export const Scid5CvPage: React.FC = () => {
         console.log('Questioning phase\'e geçildi. İlk soru:', filteredQuestions[0]);
     }, []);
 
+    // Geri gitme fonksiyonu
+    const handlePrevious = useCallback(() => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(prev => prev - 1);
+        }
+    }, [currentQuestionIndex]);
+
     const handleNext = useCallback((calculatedResult?: string) => {
         const question = questionsToAsk[currentQuestionIndex];
         if (!question) {
@@ -389,10 +396,8 @@ export const Scid5CvPage: React.FC = () => {
             // Sonucu hem state'e hem veritabanına kaydet
             handleAnswer(currentQuestion.id, calculatedValue);
             
-            setTimeout(() => {
-                setIsCalculating(false);
-                // handleNext zaten handleAnswer içinde çağrıldığı için burada tekrar çağırmaya gerek yok
-            }, 1200);
+            // Hesaplama mesajını kaldırdık - artık timeout'a gerek yok
+            setIsCalculating(false);
         }
     }, [currentQuestionIndex, questionsToAsk, answers, handleAnswer]);
 
@@ -499,14 +504,6 @@ export const Scid5CvPage: React.FC = () => {
                 );
             }
             
-            if (isCalculating) {
-                return (
-                    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-                        <Loader2 className="h-12 w-12 animate-spin mb-4" />
-                        <p className="text-lg">Hesaplanıyor...</p>
-                    </div>
-                );
-            }
 
             // Özel soru tipleri
             switch (question.type) {
@@ -579,6 +576,8 @@ export const Scid5CvPage: React.FC = () => {
                             currentAnswer={answers[question.id]?.answer}
                             onAnswer={handleAnswer}
                             onNext={() => handleNext()}
+                            onPrevious={handlePrevious}
+                            canGoBack={currentQuestionIndex > 0}
                         />
                     }
                     criteriaArea={

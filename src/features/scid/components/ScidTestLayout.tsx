@@ -1,6 +1,6 @@
 // src/features/scid/components/ScidTestLayout.tsx
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +11,9 @@ import {
   FileText, 
   BookOpen, 
   User,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface ScidTestLayoutProps {
@@ -54,6 +56,11 @@ export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
   onQuestionNoteChange
 }) => {
   const progressPercentage = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
+  
+  // Panel açık/kapalı durumları
+  const [isDsmCriteriaOpen, setIsDsmCriteriaOpen] = useState(true); // DSM-5 varsayılan AÇIK
+  const [isQuestionNoteOpen, setIsQuestionNoteOpen] = useState(false); // Soru Notu varsayılan KAPALI
+  const [isSessionNoteOpen, setIsSessionNoteOpen] = useState(false); // Seans Notu varsayılan KAPALI
 
   // Seans notunu kaydetme fonksiyonu
   const saveSessionNote = useCallback(async (note: string) => {
@@ -172,59 +179,92 @@ export const ScidTestLayout: React.FC<ScidTestLayoutProps> = ({
             {/* DSM-5 Kriterleri */}
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <BookOpen className="h-5 w-5 text-white" />
+                <button
+                  onClick={() => setIsDsmCriteriaOpen(!isDsmCriteriaOpen)}
+                  className="w-full flex items-center justify-between space-x-3 mb-4 group hover:bg-blue-50/50 dark:hover:bg-blue-900/20 rounded-xl p-2 -m-2 transition-all duration-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <BookOpen className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">DSM-5 Kriterleri</h3>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">DSM-5 Kriterleri</h3>
-                </div>
-                <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-900/20 dark:to-indigo-900/10 rounded-2xl p-4 border border-blue-200/30 dark:border-blue-700/30">
-                  <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {criteriaArea}
+                  <div className="text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200">
+                    {isDsmCriteriaOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   </div>
-                </div>
+                </button>
+                
+                {isDsmCriteriaOpen && (
+                  <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-900/20 dark:to-indigo-900/10 rounded-2xl p-4 border border-blue-200/30 dark:border-blue-700/30 animate-in slide-in-from-top-2 duration-300">
+                    <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed max-h-96 overflow-y-auto">
+                      {criteriaArea}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Soru Notu */}
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <FileText className="h-5 w-5 text-white" />
+                <button
+                  onClick={() => setIsQuestionNoteOpen(!isQuestionNoteOpen)}
+                  className="w-full flex items-center justify-between space-x-3 mb-4 group hover:bg-amber-50/50 dark:hover:bg-amber-900/20 rounded-xl p-2 -m-2 transition-all duration-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Soru Notu</h3>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Soru Notu</h3>
-                </div>
-                <div className="space-y-4">
-                  {questionNoteArea || (
-                    <Textarea
-                      placeholder="Bu soruyla ilgili notlarınızı buraya yazın..."
-                      value={currentQuestionNote}
-                      onChange={(e) => handleQuestionNoteChange(e.target.value)}
-                      className="min-h-[80px] bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-900/20 dark:to-orange-900/10 border-amber-200/50 dark:border-amber-700/50 rounded-2xl resize-none focus:ring-2 focus:ring-amber-500/50 dark:focus:ring-amber-400/50 transition-all duration-300"
-                    />
-                  )}
-                </div>
+                  <div className="text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-200">
+                    {isQuestionNoteOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  </div>
+                </button>
+                
+                {isQuestionNoteOpen && (
+                  <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                    {questionNoteArea || (
+                      <Textarea
+                        placeholder="Bu soruyla ilgili notlarınızı buraya yazın..."
+                        value={currentQuestionNote}
+                        onChange={(e) => handleQuestionNoteChange(e.target.value)}
+                        className="min-h-[80px] bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-900/20 dark:to-orange-900/10 border-amber-200/50 dark:border-amber-700/50 rounded-2xl resize-none focus:ring-2 focus:ring-amber-500/50 dark:focus:ring-amber-400/50 transition-all duration-300"
+                      />
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Seans Notları */}
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-0 shadow-xl rounded-3xl overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Sparkles className="h-5 w-5 text-white" />
+                <button
+                  onClick={() => setIsSessionNoteOpen(!isSessionNoteOpen)}
+                  className="w-full flex items-center justify-between space-x-3 mb-4 group hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 rounded-xl p-2 -m-2 transition-all duration-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Seans Notları</h3>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Seans Notları</h3>
-                </div>
-                <div className="space-y-4">
-                  <Textarea
-                    placeholder="Seans geneli notlarınızı buraya yazın..."
-                    value={sessionNote}
-                    onChange={(e) => handleSessionNoteChange(e.target.value)}
-                    className="min-h-[120px] bg-gradient-to-br from-emerald-50/50 to-green-50/30 dark:from-emerald-900/20 dark:to-green-900/10 border-emerald-200/50 dark:border-emerald-700/50 rounded-2xl resize-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-emerald-400/50 transition-all duration-300"
-                  />
-                </div>
+                  <div className="text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-200">
+                    {isSessionNoteOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  </div>
+                </button>
+                
+                {isSessionNoteOpen && (
+                  <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                    <Textarea
+                      placeholder="Seans geneli notlarınızı buraya yazın..."
+                      value={sessionNote}
+                      onChange={(e) => handleSessionNoteChange(e.target.value)}
+                      className="min-h-[120px] bg-gradient-to-br from-emerald-50/50 to-green-50/30 dark:from-emerald-900/20 dark:to-green-900/10 border-emerald-200/50 dark:border-emerald-700/50 rounded-2xl resize-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-emerald-400/50 transition-all duration-300"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

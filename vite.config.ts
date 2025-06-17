@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      overlay: false, // Bu sayfa yenileme sorununu çözebilir
+    },
   },
   plugins: [
     react(),
@@ -18,5 +21,9 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  build: {
+    sourcemap: false, // Production'da sourcemap oluşturmayalım
+    chunkSizeWarningLimit: 1000, // Chunk boyut uyarılarını artıralım
   },
 }));

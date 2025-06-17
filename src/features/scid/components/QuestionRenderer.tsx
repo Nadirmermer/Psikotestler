@@ -3,25 +3,42 @@
 import React, { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ScidQuestion } from '@/features/scid/data/scid5cv.data';
-import { CheckCircle2, XCircle, AlertCircle, Info, ChevronRight, Sparkles } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Info, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 
 interface QuestionRendererProps {
   question: ScidQuestion;
   currentAnswer?: any;
   onAnswer: (questionId: string, answer: any) => void;
   onNext?: () => void;
+  onPrevious?: () => void;
+  canGoBack?: boolean;
 }
 
 export const QuestionRenderer: React.FC<QuestionRendererProps> = ({ 
   question, 
   currentAnswer, 
   onAnswer,
-  onNext
+  onNext,
+  onPrevious,
+  canGoBack = false
 }) => {
   
   // Klavye kısayolları
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      // Eğer kullanıcı textarea, input veya başka bir form elemanında yazıyorsa klavye kısayollarını devre dışı bırak
+      const activeElement = document.activeElement;
+      const isTyping = activeElement && (
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.tagName === 'INPUT' ||
+        (activeElement as HTMLElement).contentEditable === 'true' ||
+        activeElement.getAttribute('role') === 'textbox'
+      );
+      
+      if (isTyping) {
+        return; // Kullanıcı yazı yazıyorsa klavye kısayollarını çalıştırma
+      }
+      
       if (!question.options || question.options.length === 0) return;
       
       if (event.key === '1' && question.options[0]) {
@@ -61,16 +78,30 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
             <Info className="h-6 w-6 text-white" />
           </div>
-          <div className="flex-1 prose prose-lg dark:prose-invert max-w-none">
-            <div className="text-gray-800 dark:text-gray-100 leading-relaxed">
+          <div className="flex-1 prose prose-2xl dark:prose-invert max-w-none">
+            <div className="text-gray-800 dark:text-gray-100 leading-relaxed text-xl font-medium">
               <ReactMarkdown>{question.text}</ReactMarkdown>
             </div>
           </div>
         </div>
         
-        {/* Alt Sabit İleri Butonu */}
+        {/* Alt Sabit Navigasyon Butonları */}
         <div className="mt-8 pt-6 border-t border-gradient-to-r from-transparent via-blue-200/50 to-transparent dark:via-gray-600/50">
-          <div className="flex justify-center">
+          <div className="flex justify-between items-center">
+            {/* Geri Butonu */}
+            {canGoBack && onPrevious ? (
+              <button
+                onClick={onPrevious}
+                className="group relative px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-2xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform"
+              >
+                <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-300" />
+                <span>Geri</span>
+              </button>
+            ) : (
+              <div></div> // Boş div untuk maintain layout
+            )}
+
+            {/* İleri Butonu */}
             <button
               onClick={onNext}
               className="group relative px-12 py-4 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white rounded-2xl hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 transition-all duration-300 flex items-center space-x-3 text-lg font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transform"
@@ -100,8 +131,8 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       
       {/* Soru Metni */}
       <div className="flex-1">
-        <div className="prose prose-xl dark:prose-invert max-w-none">
-          <div className="text-gray-800 dark:text-gray-100 leading-relaxed font-medium">
+        <div className="prose prose-2xl dark:prose-invert max-w-none">
+          <div className="text-gray-800 dark:text-gray-100 leading-relaxed font-medium text-xl">
             <ReactMarkdown>{question.text}</ReactMarkdown>
           </div>
         </div>
@@ -232,22 +263,39 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             </div>
           )}
           
-          {/* Klavye Kısayol Bilgisi */}
-          <div className="text-center mt-6">
-            <div className="inline-flex items-center space-x-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl px-6 py-3 border border-gray-200/50 dark:border-gray-600/50 shadow-lg">
-              <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Klavye kısayolları:</span>
-              {question.options.map((_, index) => (
-                <kbd key={index} className="px-3 py-1 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-lg text-sm font-mono shadow-sm">
-                  {index + 1}
-                </kbd>
-              ))}
+          {/* Geri Gitme Butonu - Seçenekli Sorular İçin */}
+          {canGoBack && onPrevious && (
+            <div className="flex justify-start mt-6">
+              <button
+                onClick={onPrevious}
+                className="group relative px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 flex items-center space-x-2 font-medium shadow-lg hover:shadow-xl hover:scale-105 transform"
+              >
+                <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+                <span>Geri</span>
+              </button>
             </div>
-          </div>
+          )}
+          
+          
         </div>
       ) : (
-        // Seçeneksiz sorular için İleri butonu
+        // Seçeneksiz sorular için navigasyon butonları
         <div className="mt-8 pt-6 border-t border-gradient-to-r from-transparent via-gray-200/50 to-transparent dark:via-gray-600/50">
-          <div className="flex justify-center">
+          <div className="flex justify-between items-center">
+            {/* Geri Butonu */}
+            {canGoBack && onPrevious ? (
+              <button
+                onClick={onPrevious}
+                className="group relative px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-2xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform"
+              >
+                <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-300" />
+                <span>Geri</span>
+              </button>
+            ) : (
+              <div></div> // Boş div untuk layout
+            )}
+
+            {/* İleri Butonu */}
             <button
               onClick={onNext}
               className="group relative px-12 py-4 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white rounded-2xl hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 transition-all duration-300 flex items-center space-x-3 text-lg font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transform"

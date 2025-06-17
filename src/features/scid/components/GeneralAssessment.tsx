@@ -328,21 +328,8 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
           </div>
 
           {/* Alt Butonlar */}
-          <div className="mt-12 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <div className="mt-12 flex flex-col items-center gap-4">
             
-            {/* Manuel Kaydetme Butonu */}
-            {sessionId && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={saveAllData}
-                className="group relative px-8 py-3 bg-white/70 dark:bg-gray-700/70 border-2 border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-2xl transition-all duration-300 flex items-center space-x-3 font-semibold shadow-lg hover:shadow-xl"
-              >
-                <Save className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
-                <span>Tüm Verileri Kaydet</span>
-              </Button>
-            )}
-
             {/* İleri Butonu */}
             <Button
               size="lg"
@@ -356,6 +343,16 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
               {/* Glow efekti */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300 -z-10"></div>
             </Button>
+
+            {/* İpucu */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                ✨ Verileriniz otomatik olarak kaydediliyor. Formu doldurmanız opsiyoneldir.
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                Doldurursanız kaydedilir, doldurmazsanız direkt modül seçimine geçebilirsiniz.
+              </p>
+            </div>
           </div>
         </div>
       </div>

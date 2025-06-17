@@ -30,7 +30,7 @@ export interface ScidQuestion {
   criteria?: string;
   options?: { label: string; value: any }[];
   substance_list?: { id: string; name: string }[]; // Madde listesi için yeni alan
-  sub_questions?: SubQuestion[]; // <-- YENİ ALAN: Alt sorular için
+  sub_questions?: SubQuestion[];  // Alt sorular için
   skipLogic?: { [key: string]: any };
   notePlaceholder?: string;
   calculation?: {
