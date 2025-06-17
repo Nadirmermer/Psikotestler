@@ -84,10 +84,9 @@ export const SessionReport: React.FC<SessionReportProps> = ({
       possibleConditions, 
       questionNotes, 
       allAnsweredQuestions: allAnsweredQuestions.sort((a, b) => {
-        if (a.module === b.module) {
-          return a.id.localeCompare(b.id);
-        }
-        return a.module.localeCompare(b.module);
+        const indexA = allQuestions.findIndex(q => q.id === a.id);
+        const indexB = allQuestions.findIndex(q => q.id === b.id);
+        return indexA - indexB;
       })
     };
   }, [answers, allQuestions]);
