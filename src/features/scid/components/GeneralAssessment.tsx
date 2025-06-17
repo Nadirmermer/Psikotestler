@@ -1,6 +1,6 @@
 // src/features/scid/components/GeneralAssessment.tsx
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { genelDegerlendirme_data } from '../data/genel-degerlendirme.data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,22 +30,50 @@ export const GeneralAssessment: React.FC<GeneralAssessmentProps> = ({
 }) => {
   const [notes, setNotes] = useState<{ [key: string]: string }>(initialNotes);
   const [answers, setAnswers] = useState<{ [key: string]: any }>(initialAnswers);
+  
+  // Debounce için timer referansları
+  const noteTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  const answerTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
 
   const handleNoteChange = useCallback((id: string, value: string) => {
     setNotes(prev => ({ ...prev, [id]: value }));
-    // Otomatik kaydetme
+    
+    // Önceki timer'ı temizle
+    if (noteTimers.current[id]) {
+      clearTimeout(noteTimers.current[id]);
+    }
+    
+    // Yeni timer başlat (1 saniye bekle)
     if (sessionId) {
-      saveNote(id, value);
+      noteTimers.current[id] = setTimeout(() => {
+        saveNote(id, value);
+      }, 1000);
     }
   }, [sessionId]);
 
   const handleAnswerChange = useCallback((id: string, value: any) => {
     setAnswers(prev => ({ ...prev, [id]: value }));
-    // Otomatik kaydetme
+    
+    // Önceki timer'ı temizle
+    if (answerTimers.current[id]) {
+      clearTimeout(answerTimers.current[id]);
+    }
+    
+    // Yeni timer başlat (500ms bekle - cevaplar daha hızlı kaydedilsin)
     if (sessionId) {
-      saveAnswer(id, value);
+      answerTimers.current[id] = setTimeout(() => {
+        saveAnswer(id, value);
+      }, 500);
     }
   }, [sessionId]);
+
+  // Component unmount olduğunda timer'ları temizle
+  useEffect(() => {
+    return () => {
+      Object.values(noteTimers.current).forEach(timer => clearTimeout(timer));
+      Object.values(answerTimers.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
 
   // Veritabanına kaydetme fonksiyonları
   const saveAnswer = useCallback(async (questionId: string, answer: any) => {

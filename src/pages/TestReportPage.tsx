@@ -13,7 +13,8 @@ import {
   FileText,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,6 +39,23 @@ interface TestAnswer {
   answer: string;
   question_specific_note: string;
 }
+
+// Modül isimlerini döndüren yardımcı fonksiyon
+const getModuleName = (moduleId: string): string => {
+  const moduleNames: { [key: string]: string } = {
+    'A': 'Depresif Bozukluklar',
+    'B': 'Manik ve Hipomanik Epizodlar',
+    'C': 'Psikotik Spektrum Bozuklukları',
+    'D': 'Madde Kullanım Bozuklukları',
+    'E': 'Anksiyete Bozuklukları',
+    'F': 'Obsesif-Kompulsif Bozukluklar',
+    'G': 'Travma ve Stresle İlişkili Bozukluklar',
+    'H': 'Yeme Bozuklukları',
+    'I': 'Uyku-Uyanıklık Bozuklukları',
+    'J': 'Diğer Bozukluklar'
+  };
+  return moduleNames[moduleId] || `Modül ${moduleId}`;
+};
 
 export const TestReportPage: React.FC = () => {
   const { clientId, sessionId } = useParams<{ clientId: string; sessionId: string }>();
@@ -294,6 +312,45 @@ export const TestReportPage: React.FC = () => {
             </div>
           </section>
 
+          {/* Genel Değerlendirme */}
+          {session.session_note && (
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white print:text-black mb-6 flex items-center">
+                <FileText className="h-6 w-6 mr-3 text-blue-500" />
+                Genel Değerlendirme
+              </h2>
+              <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/30 rounded-2xl p-6 border border-gray-200/50 dark:border-gray-600/50">
+                <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
+                  {session.session_note}
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* Seçilen Modüller */}
+          {session.selected_modules && (
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white print:text-black mb-6 flex items-center">
+                <BookOpen className="h-6 w-6 mr-3 text-blue-500" />
+                Değerlendirilen Modüller
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {JSON.parse(session.selected_modules).map((moduleId: string, index: number) => (
+                  <div key={moduleId} className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-indigo-200/50 dark:border-indigo-700/50">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                        Modül {moduleId}
+                      </div>
+                      <div className="text-xs text-indigo-700 dark:text-indigo-300">
+                        {getModuleName(moduleId)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Önemli Bulgular */}
           {positiveAnswers.length > 0 && (
             <section className="mb-8">
@@ -331,18 +388,92 @@ export const TestReportPage: React.FC = () => {
             </section>
           )}
 
-          {/* Seans Notları */}
-          {session.session_note && (
+          {/* Detaylı Soru-Cevap Listesi */}
+          {answers.length > 0 && (
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white print:text-black mb-6 flex items-center">
                 <FileText className="h-6 w-6 mr-3 text-blue-500" />
-                Seans Notları
+                Detaylı Soru-Cevap Listesi
               </h2>
               
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50">
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                  {session.session_note}
-                </p>
+              {/* Notlu Sorular Özeti */}
+              {notesWithContent.length > 0 && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl border border-amber-200/50 dark:border-amber-700/50">
+                  <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-3 flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Notlu Sorular ({notesWithContent.length})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {notesWithContent.map((answer) => (
+                      <div key={answer.id} className="bg-white/60 dark:bg-gray-700/60 rounded-xl p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-amber-800 dark:text-amber-200">
+                            {answer.question_code}
+                          </span>
+                          <Badge variant={answer.answer === '+' ? 'default' : 'secondary'} className="text-xs">
+                            {answer.answer === '+' ? 'Pozitif' : answer.answer === '-' ? 'Negatif' : answer.answer}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 line-clamp-2">
+                          {answer.question_specific_note}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tüm Sorular */}
+              <div className="space-y-3">
+                {answers.map((answer, index) => (
+                  <div key={answer.id} className={`rounded-xl p-4 border ${
+                    answer.answer === '+' 
+                      ? 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border-emerald-200/50 dark:border-emerald-700/50'
+                      : answer.question_specific_note?.trim()
+                      ? 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200/50 dark:border-amber-700/50'
+                      : 'bg-gradient-to-r from-gray-50 to-white dark:from-gray-700/50 dark:to-gray-800/30 border-gray-200/50 dark:border-gray-600/50'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                          answer.answer === '+' 
+                            ? 'bg-emerald-500' 
+                            : answer.question_specific_note?.trim()
+                            ? 'bg-amber-500'
+                            : 'bg-gray-400'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800 dark:text-gray-200">
+                            Soru {answer.question_code}
+                          </p>
+                          {answer.question_specific_note && (
+                            <div className="flex items-center space-x-1 mt-1">
+                              <FileText className="h-3 w-3 text-amber-600" />
+                              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                Not mevcut
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant={answer.answer === '+' ? 'default' : 'secondary'}>
+                        {answer.answer === '+' ? 'Pozitif (+)' : 
+                         answer.answer === '-' ? 'Negatif (-)' : 
+                         answer.answer || 'Yanıtsız'}
+                      </Badge>
+                    </div>
+                    
+                    {answer.question_specific_note && (
+                      <div className="mt-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-xl">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                          <strong className="text-amber-700 dark:text-amber-300">Not:</strong> {answer.question_specific_note}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </section>
           )}

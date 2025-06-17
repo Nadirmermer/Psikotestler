@@ -65,9 +65,22 @@ export const Scid5CvPage: React.FC = () => {
     setPhase('module_selection');
   }, []);
 
-  const handleExitTest = useCallback(() => {
-    navigate(`/clients/${clientId}?tab=tests`);
-  }, [navigate, clientId]);
+  const handleExitTest = useCallback(async () => {
+    // Eğer test tamamlandıysa (phase === 'completed'), uyarı gösterme
+    if (phase === 'completed') {
+      navigate(`/clients/${clientId}?tab=test-history`);
+      return;
+    }
+    
+    // Test devam ediyorsa uyarı göster
+    const confirmExit = window.confirm(
+      'Testten çıkmak istediğinizden emin misiniz?\nKaydedilmemiş verileriniz kaybolabilir. Bu işlemi geri alamazsınız.'
+    );
+    
+    if (confirmExit) {
+      navigate(`/clients/${clientId}?tab=tests`);
+    }
+  }, [navigate, clientId, phase]);
 
   // İlk yükleme - client ve session bilgilerini al
     useEffect(() => {
@@ -178,6 +191,29 @@ export const Scid5CvPage: React.FC = () => {
         }
       } catch (err) {
         console.error('Travma kaydetme hatası:', err);
+      }
+    }, [sessionId]);
+
+    // Test tamamlandığında status'u güncelle
+    const markTestAsCompleted = useCallback(async () => {
+      if (!sessionId) return;
+      
+      try {
+        const { error } = await supabase
+          .from('scid_sessions')
+          .update({ 
+            status: 'completed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', sessionId);
+        
+        if (error) {
+          console.error('Test durumu güncellenemedi:', error);
+        } else {
+          console.log('Test tamamlandı olarak işaretlendi');
+        }
+      } catch (err) {
+        console.error('Test durumu güncelleme hatası:', err);
       }
     }, [sessionId]);
 
@@ -449,6 +485,9 @@ export const Scid5CvPage: React.FC = () => {
       }
 
       if (phase === 'completed') {
+        // Test tamamlandığında status'u güncelle
+        markTestAsCompleted();
+        
         return (
           <SessionReport
             answers={answers}
