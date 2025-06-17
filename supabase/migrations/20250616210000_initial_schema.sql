@@ -218,3 +218,13 @@ CHECK (gender IS NULL OR gender IN ('Erkek', 'Kadın', 'Diğer', 'Belirtmek iste
 -- Bu dosya PsikoTest uygulaması için tüm gerekli tabloları,
 -- güvenlik politikalarını ve fonksiyonları içermektedir.
 -- =============================================================================
+
+
+
+-- Bu komut, travma olaylarının tüm detaylarını tek bir alanda saklamamızı sağlar.
+ALTER TABLE public.scid_sessions
+ADD COLUMN IF NOT EXISTS trauma_events JSONB;
+
+-- Bu komut, PTSD değerlendirmesi için hangi travmanın seçildiğini saklar.
+ALTER TABLE public.scid_sessions
+ADD COLUMN IF NOT EXISTS selected_trauma_for_ptsd TEXT;

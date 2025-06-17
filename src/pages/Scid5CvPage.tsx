@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -257,55 +256,63 @@ export const Scid5CvPage: React.FC = () => {
         const question = questionsToAsk[currentQuestionIndex];
         if (!question) {
             setPhase('completed');
+            markTestAsCompleted(); // Testi tamamlandı olarak işaretle
             return;
         }
 
         if (question.id === 'SCID_END' || currentQuestionIndex >= questionsToAsk.length - 1) {
             setPhase('completed');
+            markTestAsCompleted(); // Testi tamamlandı olarak işaretle
             return;
         }
         
-        // --- Karmaşık Atlama Mantığı ---
         let skipTargetId: string | null = null;
         const currentAnswer = calculatedResult ?? answers[question.id]?.answer;
 
-        if (question.skipLogic) {
+        // 1. ÖNCELİK: Özel 'check' koşullu atlama mantığı
+        if (question.skipLogic?.check) {
             if (question.skipLogic.check === 'A1_A2_HAYIR' && answers['A1']?.answer === '-' && answers['A2']?.answer === '-') {
                 skipTargetId = question.skipLogic.target;
             } else if (question.skipLogic.check === 'A15_A16_HAYIR' && answers['A15']?.answer === '-' && answers['A16']?.answer === '-') {
                 skipTargetId = question.skipLogic.target;
-            } else if (currentAnswer && question.skipLogic[currentAnswer]) {
-                skipTargetId = question.skipLogic[currentAnswer];
-            } else if (question.skipLogic['*']) {
-                skipTargetId = question.skipLogic['*'];
             }
         }
+        // 2. ÖNCELİK: Cevaba dayalı basit atlama mantığı
+        else if (currentAnswer && question.skipLogic?.[currentAnswer]) {
+            skipTargetId = question.skipLogic[currentAnswer];
+        }
+        // 3. ÖNCELİK: Her durumda atlama ('*')
+        else if (question.skipLogic?.['*']) {
+            skipTargetId = question.skipLogic['*'];
+        }
 
+        // Eğer bir atlama hedefi bulunduysa, oraya git
         if (skipTargetId) {
             const nextIndex = findQuestionIndexById(skipTargetId);
             setCurrentQuestionIndex(nextIndex !== -1 ? nextIndex : currentQuestionIndex + 1);
         } 
-        // --- Madde Anketi Döngüsü Mantığı ---
+        // 4. ÖNCELİK: Madde anketi döngüsü mantığı
         else if (question.id.includes('_GENERIC')) {
             const nextSubstanceQuestionIndex = substanceQuestionnaireIndex + 1;
             if (nextSubstanceQuestionIndex >= substanceQuestionnaireTemplate.length) {
                 const nextSubstanceIndex = currentSubstanceIndex + 1;
                 if (nextSubstanceIndex >= selectedSubstances.length) {
-                    const nextModuleIndex = findQuestionIndexById('F1');
-                    setCurrentQuestionIndex(nextModuleIndex !== -1 ? nextModuleIndex : questionsToAsk.length - 1);
+                    const nextModuleIndex = findQuestionIndexById('F1'); // Modül E'den sonra F1 gelir
+                    setCurrentQuestionIndex(nextModuleIndex !== -1 ? nextModuleIndex : questionsToAsk.length);
                 } else {
                     setCurrentSubstanceIndex(nextSubstanceIndex);
                     setSubstanceQuestionnaireIndex(0);
+                    // Ana index aynı kalır, bir sonraki madde için döngü baştan başlar
                 }
             } else {
                 setSubstanceQuestionnaireIndex(nextSubstanceQuestionIndex);
             }
         } 
-        // --- Normal İlerleme ---
+        // 5. ÖNCELİK: Normal ilerleme
         else {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         }
-    }, [currentQuestionIndex, questionsToAsk, answers, findQuestionIndexById, substanceQuestionnaireIndex, substanceQuestionnaireTemplate.length, currentSubstanceIndex, selectedSubstances.length]);
+    }, [currentQuestionIndex, questionsToAsk, answers, findQuestionIndexById, substanceQuestionnaireIndex, selectedSubstances]);
 
     const handleAnswer = useCallback((questionId: string, answer: any) => {
         const newAnswers = {
@@ -340,7 +347,54 @@ export const Scid5CvPage: React.FC = () => {
         }, 1000);
     }, [answers, saveAnswer]);
 
+    useEffect(() => {
+        const currentQuestion = questionsToAsk[currentQuestionIndex];
+        
+        // Sadece 'calculation' tipindeki sorular için ve henüz cevaplanmamışsa çalış
+        if (currentQuestion?.type === 'calculation' && !answers[currentQuestion.id] && currentQuestion.calculation) {
+            setIsCalculating(true);
 
+            // Hesaplama mantığı
+            const { sources, condition, threshold, contextSourceId } = currentQuestion.calculation;
+            let calculatedValue: string = 'HAYIR'; // Varsayılan
+
+            if (condition === 'any_positive') {
+                if (sources.some(id => answers[id]?.answer === '+')) calculatedValue = 'EVET';
+            } else if (condition === 'count_positive') {
+                const count = sources.filter(id => answers[id]?.answer === '+').length;
+                if (threshold && count >= threshold) calculatedValue = 'EVET';
+            } else if (condition === 'count_positive_mania') {
+                const moodAnswer = contextSourceId ? answers[contextSourceId]?.answer : null;
+                const effectiveThreshold = (moodAnswer === 'irritable') ? 4 : 3;
+                const count = sources.filter(id => answers[id]?.answer === '+').length;
+                if (count >= effectiveThreshold) calculatedValue = 'EVET';
+            } else if (condition === 'schizophrenia_A') {
+                const coreSymptoms = ['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13','B14','B15','B16','B17','B18','B19','B20'];
+                const positiveSymptoms = sources.filter(id => answers[id]?.answer === '+');
+                if (positiveSymptoms.length >= 2 && positiveSymptoms.some(id => coreSymptoms.includes(id))) {
+                    calculatedValue = 'EVET';
+                }
+            } else if (condition === 'bipolar_II_check') {
+                const hasHipomania = ['A53', 'A77'].some(id => answers[id]?.answer === '+');
+                const hasDepression = ['A12', 'A26'].some(id => answers[id]?.answer === '+');
+                if (hasHipomania && hasDepression) calculatedValue = 'EVET';
+            } else if (condition === 'count_positive_severity') {
+                const count = sources.reduce((acc, sourceId) => answers[`${sourceId}_${selectedSubstances[currentSubstanceIndex]}`]?.answer === '+' ? acc + 1 : acc, 0);
+                if (count >= 6) calculatedValue = 'Ağır';
+                else if (count >= 4) calculatedValue = 'Orta';
+                else if (count >= 2) calculatedValue = 'Ağır Olmayan';
+                else calculatedValue = 'Tanı Yok';
+            }
+
+            // Sonucu hem state'e hem veritabanına kaydet
+            handleAnswer(currentQuestion.id, calculatedValue);
+            
+            setTimeout(() => {
+                setIsCalculating(false);
+                // handleNext zaten handleAnswer içinde çağrıldığı için burada tekrar çağırmaya gerek yok
+            }, 1200);
+        }
+    }, [currentQuestionIndex, questionsToAsk, answers, handleAnswer]);
 
     // --- ANA RENDER FONKSİYONU ---
     const renderContent = () => {
